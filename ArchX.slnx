@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="ArchX.AppHost/ArchX.AppHost.csproj" />
+  <Project Path="ArchX.Server/ArchX.Server.csproj" />
+  <Project Path="frontend/frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
