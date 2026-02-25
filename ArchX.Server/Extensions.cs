@@ -1,8 +1,16 @@
+using ArchX.Server.Database;
+using ArchX.Server.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Text;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -91,5 +99,75 @@ public static class Extensions
         }
 
         return app;
+    }
+
+    public static TBuilder AddDbContext<TBuilder>(this TBuilder builder) where TBuilder: IHostApplicationBuilder
+    {
+        builder.Services.AddDbContextFactory<ArchXContext>(options =>
+        {
+            options
+                .UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), opt =>
+                {
+                    opt.CommandTimeout(60);
+                })
+                .EnableSensitiveDataLogging();
+        });
+
+        return builder;
+    }
+
+    public static TBuilder AddAuth<TBuilder>(this TBuilder builder) where TBuilder: IHostApplicationBuilder
+    {
+        builder.Services.AddIdentity<User, IdentityRole<long>>()
+            .AddEntityFrameworkStores<ArchXContext>()
+            .AddDefaultTokenProviders();
+
+        var key = Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:SecretKey"]);
+
+        builder.Services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                };
+            });
+
+        builder.Services.AddAuthorization();
+
+        // swagger
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Description = "Введите JWT токен так: Bearer {токен}",
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer"
+            });
+
+            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+            });
+        });
+
+        return builder;
     }
 }
