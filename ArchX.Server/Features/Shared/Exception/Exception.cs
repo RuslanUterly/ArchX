@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace ArchX.Server.Features.Shared.Exteptions;
+﻿namespace ArchX.Server.Features.Shared.Exteptions;
 
 public abstract class DomainException : Exception
 {

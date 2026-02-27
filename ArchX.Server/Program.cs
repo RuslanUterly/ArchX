@@ -5,11 +5,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddDbContext();
 builder.AddAuth();
+builder.AddServices();
 
 builder.Services.AddCors();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -25,7 +27,7 @@ app.MapDefaultEndpoints();
 app.UseFileServer();
 
 app.UseCors(options => options
-    .WithOrigins(new[] { "http://localhost:5173" })
+    .WithOrigins(["http://localhost:5173"])
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()

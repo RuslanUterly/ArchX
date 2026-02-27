@@ -1,5 +1,7 @@
 using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using ArchX.Server.Features.Auth;
+using ArchX.Server.Features.Auth.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -112,6 +114,14 @@ public static class Extensions
                 })
                 .EnableSensitiveDataLogging();
         });
+
+        return builder;
+    }
+
+    public static TBuilder AddServices<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
         return builder;
     }

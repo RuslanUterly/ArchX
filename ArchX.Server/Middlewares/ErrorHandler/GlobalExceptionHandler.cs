@@ -1,8 +1,6 @@
 ﻿using ArchX.Server.Features.Shared.Exteptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace ArchX.Server.Middlewares.ErrorHandler;
 

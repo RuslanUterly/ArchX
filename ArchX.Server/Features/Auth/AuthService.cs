@@ -1,7 +1,6 @@
 ﻿using ArchX.Server.Entities;
 using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Features.Shared.Exteptions;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 
