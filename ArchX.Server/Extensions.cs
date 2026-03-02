@@ -1,5 +1,7 @@
 using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using ArchX.Server.Features.ArchitectureAdvisor.Engine;
+using ArchX.Server.Features.ArchitectureDecision;
 using ArchX.Server.Features.Auth;
 using ArchX.Server.Features.Auth.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -122,6 +124,8 @@ public static class Extensions
     {
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+        builder.Services.AddScoped<ArchitectureAdvisorEngine>();
+        builder.Services.AddScoped<DecisionTreeService>();
 
         return builder;
     }

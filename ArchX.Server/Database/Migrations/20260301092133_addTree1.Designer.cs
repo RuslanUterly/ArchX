@@ -3,6 +3,7 @@ using System;
 using ArchX.Server.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchX.Server.Database.Migrations
 {
     [DbContext(typeof(ArchXContext))]
-    partial class ArchXContextModelSnapshot : ModelSnapshot
+    [Migration("20260301092133_addTree1")]
+    partial class addTree1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace ArchX.Server.Database.Migrations
                     b.Property<string>("QuestionText")
                         .HasColumnType("text");
 
-                    b.Property<int>("TreeType")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
@@ -111,9 +111,6 @@ namespace ArchX.Server.Database.Migrations
                     b.Property<int?>("CurrentNodeId")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsStyleSelected")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("PathJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -125,14 +122,8 @@ namespace ArchX.Server.Database.Migrations
                     b.Property<int?>("ResultNodeId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SelectedStyleNodeId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("TreeType")
-                        .HasColumnType("integer");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");

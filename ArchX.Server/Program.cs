@@ -1,6 +1,10 @@
+using ArchX.Server.Features.ArchitectureDecision;
+using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Middlewares.ErrorHandler;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
 builder.AddServiceDefaults();
 builder.AddDbContext();
@@ -14,6 +18,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    SeedData.Initialize(scope.ServiceProvider);
+}
 
 app.UseExceptionHandler();
 
