@@ -976,10 +976,10 @@ public class SeedData
             serviceProvider.GetRequiredService<DbContextOptions<ArchXContext>>());
 
         // Очищаем существующие данные (если нужно)
-        context.Sessions.RemoveRange(context.Sessions);
-        context.Links.RemoveRange(context.Links);
-        context.Nodes.RemoveRange(context.Nodes);
-        context.SaveChanges();
+        //context.Sessions.RemoveRange(context.Sessions);
+        //context.Links.RemoveRange(context.Links);
+        //context.Nodes.RemoveRange(context.Nodes);
+        //context.SaveChanges();
 
         // Добавляем все деревья
         var seed1 = ArchitectureStyleTreeSeed.GetNodesAndLinks();
