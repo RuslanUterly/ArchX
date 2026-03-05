@@ -981,6 +981,9 @@ public class SeedData
         //context.Nodes.RemoveRange(context.Nodes);
         //context.SaveChanges();
 
+        if (context.Nodes.Any()) return;
+
+
         // Добавляем все деревья
         var seed1 = ArchitectureStyleTreeSeed.GetNodesAndLinks();
         var seed2 = MonolithPatternsTreeSeed.GetNodesAndLinks();

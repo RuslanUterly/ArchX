@@ -20,6 +20,6 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var result = await authService.RegisterAsync(registerRequest);
 
-        return CreatedAtAction(nameof(RegisterAsync), new { id = result }, result);
+        return Ok(result);
     }
 }

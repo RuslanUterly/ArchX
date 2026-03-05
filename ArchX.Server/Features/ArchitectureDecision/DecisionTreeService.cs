@@ -218,11 +218,11 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
     /// <summary>
     /// Получить текущее состояние сессии
     /// </summary>
-    public async Task<Session?> GetSessionAsync(int sessionId)
+    public async Task<SessionResponse?> GetSessionAsync(int sessionId)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
-        return await context.Sessions
+        var session = await context.Sessions
             .Include(s => s.CurrentNode)
                 .ThenInclude(s => s.IncomingLinks)
             .Include(s => s.CurrentNode)
@@ -232,6 +232,27 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             .Include(s => s.ResultNode)
                 .ThenInclude(s => s.OutgoingLinks)
             .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+
+        return new SessionResponse
+        {
+            Id = session.Id,
+            TreeType = session.TreeType,
+            CurrentQuestion = session.CurrentNode?.QuestionText,
+            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
+            Completed = session.CompletedAt != null,
+            IsStyleSelected = session.IsStyleSelected,
+            Result = session.ResultNode != null ? new ResultNodeResponse
+            {
+                ArchitectureStyle = session.ResultNode.ArchitectureStyle,
+                Patterns = session.ResultNode.Patterns,
+                Description = session.ResultNode.Description,
+                Pros = session.ResultNode.Pros,
+                Cons = session.ResultNode.Cons
+            } : null
+        };
     }
 
 }

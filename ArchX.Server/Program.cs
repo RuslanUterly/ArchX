@@ -36,10 +36,9 @@ app.MapDefaultEndpoints();
 app.UseFileServer();
 
 app.UseCors(options => options
-    .WithOrigins(["http://localhost:5173"])
+    .AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod()
-    .AllowCredentials()
 );
 
 if (app.Environment.IsDevelopment())

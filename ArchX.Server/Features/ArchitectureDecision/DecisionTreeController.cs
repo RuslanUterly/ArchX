@@ -17,16 +17,7 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
     {
         var session = await service.StartSessionAsync(userId, request.ProjectName, request.TreeType);
 
-        return await GetSession(session.Id);
-
-        return Ok(new SessionResponse
-        {
-            Id = session.Id,
-            TreeType = session.TreeType,
-            CurrentQuestion = session.CurrentNode?.QuestionText,
-            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
-            IsStyleSelected = session.IsStyleSelected
-        });
+        return Ok(await service.GetSessionAsync(session.Id));
     }
 
     /// <summary>
@@ -58,15 +49,7 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
         else
         {
             // Возвращаем следующий вопрос
-            return await GetSession(sessionId);
-
-            return Ok(new
-            {
-                Completed = false,
-                TreeType = session.TreeType,
-                Question = session.CurrentNode?.QuestionText,
-                Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList()
-            });
+            return Ok(await service.GetSessionAsync(session.Id));
         }
     }
 
@@ -75,14 +58,7 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
     {
         var session = await service.ContinueWithPatternsAsync(styleSessionId);
 
-        return Ok(new SessionResponse
-        {
-            Id = session.Id,
-            TreeType = session.TreeType,
-            CurrentQuestion = session.CurrentNode?.QuestionText,
-            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
-            IsStyleSelected = session.IsStyleSelected
-        });
+        return Ok(await service.GetSessionAsync(session.Id));
     }
 
     /// <summary>
@@ -92,25 +68,7 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
     public async Task<IActionResult> GetSession(int sessionId)
     {
         var session = await service.GetSessionAsync(sessionId);
-        if (session == null) return NotFound();
-
-        return Ok(new SessionResponse
-        {
-            Id = session.Id,
-            TreeType = session.TreeType,
-            CurrentQuestion = session.CurrentNode?.QuestionText,
-            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
-            Completed = session.CompletedAt != null,
-            IsStyleSelected = session.IsStyleSelected,
-            Result = session.ResultNode != null ? new
-            {
-                ArchitectureStyle = session.ResultNode.ArchitectureStyle,
-                Patterns = session.ResultNode.Patterns,
-                Description = session.ResultNode.Description,
-                Pros = session.ResultNode.Pros,
-                Cons = session.ResultNode.Cons
-            } : null
-        });
+        return Ok(session);
     }
 
     [HttpGet("visualization/{treeType}")]
