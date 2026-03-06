@@ -5,12 +5,11 @@ import ProtectedRoute from "./shared/components/route/ProtectedRoute.tsx";
 import LoginPage from "./modules/auth/pages/LoginPage.tsx";
 import RegisterPage from "./modules/auth/pages/RegisterPage.tsx";
 //import { useProfileStore } from "./modules/profile/store.ts";
-import { useEffect } from "react";
 import { NotFoundPage } from "./shared/pages/NotFoundPage.tsx";
 import LayoutCenter from "./shared/components/layout/LayoutCenter.tsx";
 //import { ProfilePage } from "./modules/profile/pages/ProfilePage.tsx";
 //import { HhCallbackPage } from "./modules/profile/pages/hh/HhCallbackPage.tsx";
-//import { HomePage } from "./modules/home/pages/HomePage.tsx";
+import HomePage from "./modules/home/pages/HomePage.tsx";
 //import { CreateGroupPage } from "./modules/group/pages/CreateGroupPage.tsx";
 //import { GroupPage } from "./modules/group/pages/GroupPage.tsx";
 //import { EditGroupPage } from "./modules/group/pages/EditGroupPage.tsx";
@@ -28,11 +27,14 @@ function App() {
             <Header />
 
             <Routes>
-                {/*<Route path="/" element={*/}
-                {/*    <ProtectedRoute>*/}
-                {/*        <HomePage />*/}
-                {/*    </ProtectedRoute>*/}
-                {/*} />*/}
+                <Route
+                    path="/"
+                    element={
+                        <LayoutCenter>
+                            <HomePage />
+                        </LayoutCenter>
+                    }
+                />
 
                 <Route
                     path="/decision-tree"
