@@ -1,62 +1,98 @@
 ﻿using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.Shared.Exteptions;
+using ArchX.Server.Features.Shared.Request;
+using ArchX.Server.Features.Shared.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArchX.Server.Features.ArchitectureDecision;
 
 public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 {
-    /// <summary>
-    /// Получить корневой узел (начало дерева)
-    /// </summary>
-    public async Task<Node?> GetRootNodeAsync(TreeType treeType)
+    public async Task<PagedResult<SessionCompleteResponse>> GetSessionsAsync(QueryParameter query)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
-        return await context.Nodes
-            .Include(n => n.OutgoingLinks)
-            .ThenInclude(l => l.Child)
-            .Where(n => n.TreeType == treeType)
-            .FirstOrDefaultAsync(n => !n.IncomingLinks.Any());
-    }
+        var session = context.Sessions
+            .Include(s => s.CurrentNode)
+                .ThenInclude(s => s.IncomingLinks)
+            .Include(s => s.CurrentNode)
+                .ThenInclude(s => s.OutgoingLinks)
+            .Include(s => s.ResultNode)
+                .ThenInclude(s => s.IncomingLinks)
+            .Include(s => s.ResultNode)
+                .ThenInclude(s => s.OutgoingLinks)
+            .Where(s => s.CompletedAt.HasValue && s.SelectedStyleNodeId.HasValue)
+            .AsQueryable();
 
-    /// <summary>
-    /// Получить следующий узел по ответу
-    /// </summary>
-    public async Task<Node?> GetNextNodeAsync(int currentNodeId, string answer)
-    {
-        using var context = await dbFactory.CreateDbContextAsync();
-
-        var link = await context.Links
-            .Include(l => l.Child)
-            .FirstOrDefaultAsync(l => l.ParentId == currentNodeId && l.Condition == answer);
-
-        return link?.Child;
-    }
-
-    /// <summary>
-    /// Получить дерево для выбора паттернов на основе выбранного стиля
-    /// </summary>
-    public TreeType GetPatternsTreeType(string architectureStyle)
-    {
-        return architectureStyle?.ToLower() switch
+        if (query.Page > 0 && query.PageSize > 0)
         {
-            var s when s.Contains("монолит") && !s.Contains("модульный") => TreeType.MonolithPatterns,
-            var s when s.Contains("модульный монолит") => TreeType.ModularMonolithPatterns,
-            var s when s.Contains("микросервисы") => TreeType.MicroservicesPatterns,
-            _ => TreeType.MonolithPatterns // По умолчанию
+            session = session
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize);
+        }
+
+        var result = new PagedResult<SessionCompleteResponse>();
+        result.TotalCount = session.Count();
+
+        result.Items = session.Select(s => new SessionCompleteResponse
+        {
+            Id = s.Id,
+            TreeType = s.TreeType,
+            CompletedAt = s.CompletedAt!.Value,
+            Result = new ResultNodeCompletedResponse
+            {
+                ArchitectureStyle = s.ResultNode.ArchitectureStyle,
+                Patterns = s.ResultNode.Patterns,
+                Description = s.ResultNode.Description,
+            }
+        }).ToList();
+
+        return result;
+    }
+
+    public async Task<SessionInProccessResponse?> GetSessionAsync(int sessionId)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
+
+        var session = await context.Sessions
+            .Include(s => s.CurrentNode)
+                .ThenInclude(s => s.IncomingLinks)
+            .Include(s => s.CurrentNode)
+                .ThenInclude(s => s.OutgoingLinks)
+            .Include(s => s.ResultNode)
+                .ThenInclude(s => s.IncomingLinks)
+            .Include(s => s.ResultNode)
+                .ThenInclude(s => s.OutgoingLinks)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+
+        return new SessionInProccessResponse
+        {
+            Id = session.Id,
+            TreeType = session.TreeType,
+            CurrentQuestion = session.CurrentNode?.QuestionText,
+            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
+            Completed = session.CompletedAt != null,
+            IsStyleSelected = session.IsStyleSelected,
+            Result = session.ResultNode != null ? new ResultNodeInProccessResponse
+            {
+                ArchitectureStyle = session.ResultNode.ArchitectureStyle,
+                Patterns = session.ResultNode.Patterns,
+                Description = session.ResultNode.Description,
+                Pros = session.ResultNode.Pros,
+                Cons = session.ResultNode.Cons
+            } : null
         };
     }
 
-    /// <summary>
-    /// Начать новую сессию
-    /// </summary>
     public async Task<Session> StartSessionAsync(long userId, string projectName, TreeType treeType)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
-        var root = await GetRootNodeAsync(treeType);
+        var root = await DecisionTreeHelper.GetRootNodeAsync(context, treeType);
         if (root == null) 
             throw new NotFoundException("Дерево решений не настроено");
 
@@ -77,9 +113,6 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         return session;
     }
 
-    /// <summary>
-    /// Обработать ответ и перейти дальше
-    /// </summary>
     public async Task<Session> ProcessAnswerAsync(int sessionId, string answer)
     {
         using var context = await dbFactory.CreateDbContextAsync();
@@ -105,11 +138,10 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         session.Path = path;
 
         // Ищем следующий узел
-        var nextNode = await GetNextNodeAsync(session.CurrentNodeId.GetValueOrDefault(), answer);
+        var nextNode = await DecisionTreeHelper.GetNextNodeAsync(context, session.CurrentNodeId.GetValueOrDefault(), answer);
 
         if (nextNode?.Type == "Result")
         {
-            // Это узел-результат, завершаем сессию
             session.ResultNodeId = nextNode.Id;
             session.ResultNode = nextNode;
             session.CompletedAt = DateTime.UtcNow;
@@ -117,56 +149,6 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             await context.SaveChangesAsync();
             return session;
         }
-        #region
-
-        //if (nextNode == null)
-        //{
-        //    // Если нет следующего узла, считаем текущий узел ответом (листом)
-        //    session.ResultNodeId = session.CurrentNodeId;
-
-        //    // Если это было дерево выбора стиля, запоминаем выбранный стиль
-        //    if (session.TreeType == TreeType.ArchitectureStyle && session.CurrentNode?.ArchitectureStyle != null)
-        //    {
-        //        session.SelectedStyleNodeId = session.CurrentNodeId;
-        //        session.IsStyleSelected = true;
-
-        //        // Автоматически начинаем дерево паттернов для выбранного стиля
-        //        //var patternsTreeType = GetPatternsTreeType(session.CurrentNode.TreeType);
-        //        var patternsRoot = await GetRootNodeAsync(session.CurrentNode.TreeType);
-
-        //        if (patternsRoot != null)
-        //        {
-        //            // Создаём новую сессию для паттернов
-        //            var patternsSession = new Session
-        //            {
-        //                UserId = session.UserId,
-        //                ProjectName = session.ProjectName,
-        //                TreeType = session.CurrentNode.TreeType,
-        //                StartedAt = DateTime.UtcNow,
-        //                CurrentNodeId = patternsRoot.Id,
-        //                Answers = new Dictionary<int, string>(),
-        //                Path = new List<int>(),
-        //                IsStyleSelected = true,
-        //                SelectedStyleNodeId = session.CurrentNodeId
-        //            };
-
-        //            context.Sessions.Add(patternsSession);
-        //            await context.SaveChangesAsync();
-
-        //            // Завершаем текущую сессию
-        //            session.CompletedAt = DateTime.UtcNow;
-        //            session.CurrentNodeId = null;
-        //            await context.SaveChangesAsync();
-
-        //            // Возвращаем новую сессию
-        //            return patternsSession;
-        //        }
-        //    }
-
-        //    session.CompletedAt = DateTime.UtcNow;
-        //    session.CurrentNodeId = null;
-        //}
-        #endregion
         else
         {
             session.CurrentNodeId = nextNode.Id;
@@ -189,8 +171,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         if (styleSession?.ResultNode?.ArchitectureStyle == null)
             throw new BadRequestException("Стиль архитектуры не выбран");
 
-        var patternsTreeType = GetPatternsTreeType(styleSession.ResultNode.ArchitectureStyle);
-        var patternsRoot = await GetRootNodeAsync(patternsTreeType);
+        var patternsTreeType = DecisionTreeHelper.GetPatternsTreeType(styleSession.ResultNode.ArchitectureStyle);
+        var patternsRoot = await DecisionTreeHelper.GetRootNodeAsync(context, patternsTreeType);
 
         if (patternsRoot == null)
             throw new NotFoundException($"Дерево паттернов для стиля {styleSession.ResultNode.ArchitectureStyle} не найдено");
@@ -214,46 +196,233 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         return patternsSession;
     }
 
+    public async Task<VisualizationResponse> GetVisualization(TreeType treeType)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
 
-    /// <summary>
-    /// Получить текущее состояние сессии
-    /// </summary>
-    public async Task<SessionResponse?> GetSessionAsync(int sessionId)
+        var nodes = await context.Nodes
+            .Where(n => n.TreeType == treeType)
+            .Select(n => new NodeResponse
+            {
+                Id = n.Id,
+                Label = n.Type == "Question" ? n.QuestionText : n.ArchitectureStyle,
+                Type = n.Type,
+                Patterns = n.Patterns,
+                Description = n.Description
+            })
+            .ToListAsync();
+
+        var edges = await context.Links
+            .Where(l => nodes.Select(n => n.Id).Contains(l.ParentId) ||
+                       nodes.Select(n => n.Id).Contains(l.ChildId))
+            .Select(l => new LinkResponse
+            {
+                From = l.ParentId,
+                To = l.ChildId,
+                Label = l.Condition
+            })
+            .ToListAsync();
+
+        return new VisualizationResponse 
+        { 
+            Nodes = nodes, 
+            Edges = edges, 
+            TreeType = treeType 
+        };
+    }
+
+    public async Task<SessionBranchResponse> GetSessionBranch(int sessionId)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
         var session = await context.Sessions
-            .Include(s => s.CurrentNode)
-                .ThenInclude(s => s.IncomingLinks)
-            .Include(s => s.CurrentNode)
-                .ThenInclude(s => s.OutgoingLinks)
             .Include(s => s.ResultNode)
-                .ThenInclude(s => s.IncomingLinks)
-            .Include(s => s.ResultNode)
-                .ThenInclude(s => s.OutgoingLinks)
             .FirstOrDefaultAsync(s => s.Id == sessionId);
 
         if (session == null)
             throw new NotFoundException("Сессия не найдена");
 
-        return new SessionResponse
+        if (session.CompletedAt == null)
+            throw new BadRequestException("Сессия ещё не завершена");
+
+        // Получаем путь в правильном порядке (от корня к результату)
+        var pathIds = session.Path;
+
+        if (!pathIds.Any())
+            throw new BadRequestException("Путь сессии пуст");
+
+        // Загружаем все узлы, которые были в пути
+        var nodes = await context.Nodes
+            .Where(n => pathIds.Contains(n.Id))
+            .ToDictionaryAsync(n => n.Id);
+
+        // Загружаем все связи, которые использовались
+        var links = await context.Links
+            .Where(l => pathIds.Contains(l.ParentId) && pathIds.Contains(l.ChildId))
+            .ToListAsync();
+
+        // Формируем структуру ветки
+        var branch = new SessionBranchResponse
         {
-            Id = session.Id,
-            TreeType = session.TreeType,
-            CurrentQuestion = session.CurrentNode?.QuestionText,
-            Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
-            Completed = session.CompletedAt != null,
-            IsStyleSelected = session.IsStyleSelected,
-            Result = session.ResultNode != null ? new ResultNodeResponse
+            SessionId = session.Id,
+            ProjectName = session.ProjectName,
+            StartedAt = session.StartedAt,
+            CompletedAt = session.CompletedAt.Value,
+            Path = new List<PathItemResponse>(),
+            Result = new ResultNodeInProccessResponse
             {
-                ArchitectureStyle = session.ResultNode.ArchitectureStyle,
-                Patterns = session.ResultNode.Patterns,
-                Description = session.ResultNode.Description,
-                Pros = session.ResultNode.Pros,
-                Cons = session.ResultNode.Cons
-            } : null
+                ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
+                Patterns = session.ResultNode?.Patterns ?? new List<string>(),
+                Description = session.ResultNode?.Description,
+                Pros = session.ResultNode?.Pros ?? new List<string>(),
+                Cons = session.ResultNode?.Cons ?? new List<string>()
+            }
+        };
+
+        // Проходим по пути и собираем вопросы с ответами
+        for (int i = 0; i < pathIds.Count; i++)
+        {
+            var nodeId = pathIds[i];
+            var node = nodes[nodeId];
+
+            var pathItem = new PathItemResponse
+            {
+                NodeId = node.Id,
+                Question = node.QuestionText,
+                Type = node.Type
+            };
+
+            // Для вопроса добавляем ответ, который был дан
+            if (node.Type == "Question" && session.Answers.ContainsKey(nodeId))
+            {
+                pathItem.Answer = session.Answers[nodeId];
+
+                // Находим следующий узел, чтобы показать куда привели
+                var nextLink = links.FirstOrDefault(l => l.ParentId == nodeId && l.Condition == pathItem.Answer);
+                if (nextLink != null)
+                {
+                    pathItem.LeadsToNodeId = nextLink.ChildId;
+
+                    // Если следующий узел - ответ, добавляем его название
+                    if (nodes.ContainsKey(nextLink.ChildId) && nodes[nextLink.ChildId].Type == "Answer")
+                    {
+                        pathItem.LeadsToArchitecture = nodes[nextLink.ChildId].ArchitectureStyle;
+                    }
+                }
+            }
+
+            branch.Path.Add(pathItem);
+        }
+
+        // Добавляем итоговый узел
+        if (session.ResultNode != null)
+        {
+            branch.Path.Add(new PathItemResponse
+            {
+                NodeId = session.ResultNode.Id,
+                Question = session.ResultNode.ArchitectureStyle,
+                Type = "Answer",
+                IsResult = true
+            });
+        }
+
+        return branch;
+    }
+
+    public async Task<SessionTreeResponse> GetSessionTree(int sessionId)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
+
+        var session = await context.Sessions
+            .Include(s => s.ResultNode)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+
+        if (session.CompletedAt == null)
+            throw new BadRequestException("Сессия ещё не завершена");
+
+        var pathIds = session.Path;
+        var nodes = await context.Nodes
+            .Where(n => pathIds.Contains(n.Id))
+            .ToDictionaryAsync(n => n.Id);
+
+        // Рекурсивно строим дерево
+        var rootNode = await BuildQuestionTree(nodes, session, pathIds[0], 0);
+
+        return new SessionTreeResponse
+        {
+            SessionId = session.Id,
+            ProjectName = session.ProjectName,
+            StartedAt = session.StartedAt,
+            CompletedAt = session.CompletedAt.Value,
+            Tree = rootNode,
+            Result = new ResultNodeCompletedResponse
+            {
+                ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
+                Patterns = session.ResultNode?.Patterns,
+                Description = session.ResultNode?.Description
+            }
         };
     }
 
+    private async Task<QuestionNodeResponse> BuildQuestionTree(
+        Dictionary<int, Node> nodes,
+        Session session,
+        int currentNodeId,
+        int depth)
+    {
+        var node = nodes[currentNodeId];
+
+        var dto = new QuestionNodeResponse
+        {
+            NodeId = node.Id,
+            Question = node.QuestionText,
+            Answer = session.Answers.ContainsKey(node.Id) ? session.Answers[node.Id] : null
+        };
+
+        // Если есть ответ и это не последний узел
+        if (dto.Answer != null && depth < session.Path.Count - 1)
+        {
+            // Находим следующий узел в пути
+            var nextNodeId = session.Path[depth + 1];
+            dto.NextNode = await BuildQuestionTree(nodes, session, nextNodeId, depth + 1);
+        }
+
+        return dto;
+    }
+}
+
+public static class DecisionTreeHelper 
+{
+    public static TreeType GetPatternsTreeType(string architectureStyle)
+    {
+        return architectureStyle?.ToLower() switch
+        {
+            var s when s.Contains("монолит") && !s.Contains("модульный") => TreeType.MonolithPatterns,
+            var s when s.Contains("модульный монолит") => TreeType.ModularMonolithPatterns,
+            var s when s.Contains("микросервисы") => TreeType.MicroservicesPatterns,
+            _ => TreeType.MonolithPatterns
+        };
+    }
+
+    public static async Task<Node?> GetRootNodeAsync(ArchXContext context, TreeType treeType)
+    {
+        return await context.Nodes
+            .Include(n => n.OutgoingLinks)
+            .ThenInclude(l => l.Child)
+            .Where(n => n.TreeType == treeType)
+            .FirstOrDefaultAsync(n => !n.IncomingLinks.Any());
+    }
+
+    public static async Task<Node?> GetNextNodeAsync(ArchXContext context, int currentNodeId, string answer)
+    {
+        var link = await context.Links
+            .Include(l => l.Child)
+            .FirstOrDefaultAsync(l => l.ParentId == currentNodeId && l.Condition == answer);
+
+        return link?.Child;
+    }
 }
 
