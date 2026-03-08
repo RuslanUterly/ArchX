@@ -1,5 +1,6 @@
 ﻿using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ArchX.Server.Features.ArchitectureDecision;
 
 [ApiController]
 [Route("api/v1/[controller]")]
+[Authorize]
 public class DecisionTreeController(DecisionTreeService service, IDbContextFactory<ArchXContext> dbFactory) : ControllerBase
 {
     [HttpGet("{sessionId}")]

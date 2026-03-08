@@ -1,6 +1,8 @@
+using ArchX.Server.Entities;
 using ArchX.Server.Features.ArchitectureDecision;
 using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Middlewares.ErrorHandler;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,16 +26,12 @@ using (var scope = app.Services.CreateScope())
     SeedData.Initialize(scope.ServiceProvider);
 }
 
-app.UseExceptionHandler();
+//if (app.Environment.IsDevelopment())
+//{
+//    app.MapOpenApi();
+//}
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.MapDefaultEndpoints();
-
-app.UseFileServer();
+app.UseRouting();
 
 app.UseCors(options => options
     .AllowAnyOrigin()
@@ -47,7 +45,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 
@@ -55,5 +53,19 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<long>>>();
+    string[] roles = [Roles.User, Roles.Admin];
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole<long>(role));
+        }
+    }
+}
 
 app.Run();

@@ -1,8 +1,9 @@
-﻿using ArchX.Server.Entities;
+using ArchX.Server.Entities;
 using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Features.Shared.Exteptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
+using System.Security.Claims;
 
 namespace ArchX.Server.Features.Auth;
 
@@ -23,7 +24,7 @@ public class AuthService(
         if (!signInResult.Succeeded)
             throw new UnauthorizedException("Ошибка авторизации! Проверьте логин или пароль");
 
-        var token = jwtProvider.GenerateToken(account);
+        var token = await jwtProvider.GenerateTokenAsync(account);
 
         return token;
     }
@@ -44,6 +45,20 @@ public class AuthService(
         if (!result.Succeeded)
             throw new BadRequestException("Произошла ошибка");
 
+        if (!await userManager.IsInRoleAsync(user, "User"))
+            await userManager.AddToRoleAsync(user, "User");
+
         return user.Id;
+    }
+
+    public async Task<IList<string>> GetUserRolesAsync(ClaimsPrincipal user)
+    {
+        var account = await userManager.GetUserAsync(user);
+
+        if (account == null)
+            throw new NotFoundException("Пользователь не найден");
+
+        var roles = await userManager.GetRolesAsync(account);
+        return roles;
     }
 }

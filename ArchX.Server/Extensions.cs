@@ -2,6 +2,7 @@ using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.ArchitectureAdvisor.Engine;
 using ArchX.Server.Features.ArchitectureDecision;
+using ArchX.Server.Features.ArchitectureDecisionEditor;
 using ArchX.Server.Features.Auth;
 using ArchX.Server.Features.Auth.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -126,6 +127,7 @@ public static class Extensions
         builder.Services.AddScoped<IJwtProvider, JwtProvider>();
         builder.Services.AddScoped<ArchitectureAdvisorEngine>();
         builder.Services.AddScoped<DecisionTreeService>();
+        builder.Services.AddScoped<DecisionTreeEditorService>();
 
         return builder;
     }
@@ -136,7 +138,11 @@ public static class Extensions
             .AddEntityFrameworkStores<ArchXContext>()
             .AddDefaultTokenProviders();
 
-        var key = Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:SecretKey"]);
+        var secretKey = builder.Configuration["JwtOptions:SecretKey"]
+            ?? throw new InvalidOperationException("JwtOptions:SecretKey не задан в конфигурации.");
+        if (secretKey.Length < 32)
+            throw new InvalidOperationException("JwtOptions:SecretKey должен быть не менее 32 символов для HS256.");
+        var key = Encoding.UTF8.GetBytes(secretKey);
 
         builder.Services
             .AddAuthentication(options =>
@@ -155,7 +161,7 @@ public static class Extensions
                     ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
                 };
             });
 
@@ -178,7 +184,7 @@ public static class Extensions
 
             c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
         });
 

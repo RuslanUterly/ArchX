@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ArchX.Server.Entities;
 
+public class Roles
+{
+    public const string Admin = "Admin";
+    public const string User = "User";
+}
+
 public enum UserType
 {
     Architect = 1,

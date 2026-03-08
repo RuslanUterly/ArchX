@@ -1,4 +1,5 @@
-﻿using ArchX.Server.Entities;
+using ArchX.Server.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,33 +10,39 @@ namespace ArchX.Server.Features.Auth.Jwt;
 
 public interface IJwtProvider
 {
-    string GenerateToken(User user);
+    Task<string> GenerateTokenAsync(User user);
 }
 
-public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
+public class JwtProvider(IOptions<JwtOptions> options, UserManager<User> userManager) : IJwtProvider
 {
     private readonly JwtOptions _options = options.Value;
 
-    public string GenerateToken(User user)
+    public async Task<string> GenerateTokenAsync(User user)
     {
-        Claim[] claims =
-        [
+        var roles = await userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+        {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        ];
+            new(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
-        var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
-            SecurityAlgorithms.HmacSha256);
+        var key = Encoding.UTF8.GetBytes(_options.SecretKey);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddHours(_options.ExpiresHours),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+        };
 
-        var token = new JwtSecurityToken(
-            claims: claims,
-            signingCredentials: signingCredentials,
-            expires: DateTime.UtcNow.AddHours(_options.ExpiresHours)
-        );
-
-        var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
-        return tokenValue;
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
     }
 }
