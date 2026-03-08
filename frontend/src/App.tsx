@@ -14,9 +14,9 @@ import HomePage from "./modules/home/pages/HomePage.tsx";
 //import { GroupPage } from "./modules/group/pages/GroupPage.tsx";
 //import { EditGroupPage } from "./modules/group/pages/EditGroupPage.tsx";
 import DecisionTreePage from "./modules/architectureDecision/pages/DecisionTreePage.tsx";
+import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/DecisionTreeEditorPage.tsx";
 
 function App() {
-    //const initProfile = useProfileStore((state) => state.init);
 
     //useEffect(() => {
     //    initProfile();
@@ -41,6 +41,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <DecisionTreePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/decision-tree/editor"
+                    element={
+                        <ProtectedRoute allowedRoles={["Admin"]}>
+                            <DecisionTreeEditorPage />
                         </ProtectedRoute>
                     }
                 />
