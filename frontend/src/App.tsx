@@ -4,16 +4,11 @@ import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./shared/components/route/ProtectedRoute.tsx";
 import LoginPage from "./modules/auth/pages/LoginPage.tsx";
 import RegisterPage from "./modules/auth/pages/RegisterPage.tsx";
-//import { useProfileStore } from "./modules/profile/store.ts";
 import { NotFoundPage } from "./shared/pages/NotFoundPage.tsx";
 import LayoutCenter from "./shared/components/layout/LayoutCenter.tsx";
-//import { ProfilePage } from "./modules/profile/pages/ProfilePage.tsx";
-//import { HhCallbackPage } from "./modules/profile/pages/hh/HhCallbackPage.tsx";
 import HomePage from "./modules/home/pages/HomePage.tsx";
-//import { CreateGroupPage } from "./modules/group/pages/CreateGroupPage.tsx";
-//import { GroupPage } from "./modules/group/pages/GroupPage.tsx";
-//import { EditGroupPage } from "./modules/group/pages/EditGroupPage.tsx";
 import DecisionTreePage from "./modules/architectureDecision/pages/DecisionTreePage.tsx";
+import SessionDetailPage from "./modules/architectureDecision/pages/SessionDetailPage.tsx";
 import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/DecisionTreeEditorPage.tsx";
 
 function App() {
@@ -41,6 +36,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <DecisionTreePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/sessions/:sessionId"
+                    element={
+                        <ProtectedRoute>
+                            <SessionDetailPage />
                         </ProtectedRoute>
                     }
                 />

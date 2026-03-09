@@ -1,5 +1,7 @@
-﻿using ArchX.Server.Database;
+using System.Security.Claims;
+using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using ArchX.Server.Features.Shared.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +13,27 @@ namespace ArchX.Server.Features.ArchitectureDecision;
 [Authorize]
 public class DecisionTreeController(DecisionTreeService service, IDbContextFactory<ArchXContext> dbFactory) : ControllerBase
 {
+    private long? GetCurrentUserId()
+    {
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return long.TryParse(sub, out var id) ? id : null;
+    }
+
+    private bool IsUserRole() => User.IsInRole("User") && !User.IsInRole("Admin");
+
+    [HttpPost("Get")]
+    public async Task<IActionResult> GetSessions([FromBody] QueryParameter query)
+    {
+        var userIdFilter = IsUserRole() ? GetCurrentUserId() : null;
+        var session = await service.GetSessionsAsync(query, userIdFilter);
+        return Ok(session);
+    }
+
     [HttpGet("{sessionId}")]
     public async Task<IActionResult> GetSession(int sessionId)
     {
-        var session = await service.GetSessionAsync(sessionId);
+        var userIdFilter = IsUserRole() ? GetCurrentUserId() : null;
+        var session = await service.GetSessionAsync(sessionId, userIdFilter);
         return Ok(session);
     }
 
@@ -79,7 +98,16 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
     [HttpGet("{sessionId}/tree")]
     public async Task<IActionResult> GetSessionTree(int sessionId)
     {
-        var result = await service.GetSessionTree(sessionId);
+        var userIdFilter = IsUserRole() ? GetCurrentUserId() : null;
+        var result = await service.GetSessionTree(sessionId, userIdFilter);
+        return Ok(result);
+    }
+
+    [HttpGet("{sessionId}/tree/combined")]
+    public async Task<IActionResult> GetCombinedSessionTree(int sessionId)
+    {
+        var userIdFilter = IsUserRole() ? GetCurrentUserId() : null;
+        var result = await service.GetCombinedSessionTree(sessionId, userIdFilter);
         return Ok(result);
     }
 }

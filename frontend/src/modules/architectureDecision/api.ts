@@ -122,3 +122,104 @@ export const continueWithPatterns = async (
     return res.json();
 };
 
+// --- Сессии (список и детали) ---
+
+export interface SessionCompleteResult {
+    architectureStyle?: string | null;
+    patterns?: string[] | null;
+    description?: string | null;
+    pros?: string[] | null;
+    cons?: string[] | null;
+}
+
+export interface SessionCompleteResponse {
+    id: number;
+    treeType: TreeTypeValue;
+    projectName: string;
+    startedAt: string;
+    completedAt: string;
+    selectedStyleNodeId?: number | null;
+    result: SessionCompleteResult;
+}
+
+export interface PagedResult<T> {
+    totalCount: number;
+    items: T[];
+}
+
+export interface QueryParameter {
+    page: number;
+    pageSize: number;
+    sortField?: string | null;
+    sortOrder?: string | null;
+}
+
+export const getSessions = async (
+    query: QueryParameter,
+): Promise<PagedResult<SessionCompleteResponse>> => {
+    const res = await fetch(`${BASE_URL}/Get`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
+        },
+        body: JSON.stringify(query),
+    });
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Не удалось загрузить сессии");
+    }
+    return res.json();
+};
+
+export const getSession = async (
+    sessionId: number,
+): Promise<SessionResponse> => {
+    const res = await fetch(`${BASE_URL}/${sessionId}`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Сессия не найдена");
+    }
+    return res.json();
+};
+
+// --- Дерево сессии (объединённое: стили + паттерны) ---
+
+export interface QuestionNodeResponse {
+    nodeId: number;
+    question: string;
+    answer: string | null;
+    nextNode: QuestionNodeResponse | null;
+}
+
+export interface SessionTreeResponse {
+    sessionId: number;
+    projectName: string;
+    startedAt: string;
+    completedAt: string;
+    tree: QuestionNodeResponse;
+    result: SessionCompleteResult | null;
+}
+
+export interface CombinedSessionTreeResponse {
+    styleTree: SessionTreeResponse | null;
+    patternsTree: SessionTreeResponse | null;
+}
+
+export const getCombinedSessionTree = async (
+    sessionId: number,
+): Promise<CombinedSessionTreeResponse> => {
+    const res = await fetch(`${BASE_URL}/${sessionId}/tree/combined`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Не удалось загрузить дерево сессии");
+    }
+    return res.json();
+};
+

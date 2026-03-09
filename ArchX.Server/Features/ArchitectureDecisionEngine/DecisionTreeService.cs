@@ -1,4 +1,4 @@
-﻿using ArchX.Server.Database;
+using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.Shared.Exteptions;
 using ArchX.Server.Features.Shared.Request;
@@ -9,49 +9,58 @@ namespace ArchX.Server.Features.ArchitectureDecision;
 
 public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 {
-    public async Task<PagedResult<SessionCompleteResponse>> GetSessionsAsync(QueryParameter query)
+    public async Task<PagedResult<SessionCompleteResponse>> GetSessionsAsync(QueryParameter query, long? userIdFilter)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
-        var session = context.Sessions
-            .Include(s => s.CurrentNode)
-                .ThenInclude(s => s.IncomingLinks)
-            .Include(s => s.CurrentNode)
-                .ThenInclude(s => s.OutgoingLinks)
+        var sessionQuery = context.Sessions
             .Include(s => s.ResultNode)
-                .ThenInclude(s => s.IncomingLinks)
-            .Include(s => s.ResultNode)
-                .ThenInclude(s => s.OutgoingLinks)
-            .Where(s => s.CompletedAt.HasValue && s.SelectedStyleNodeId.HasValue)
+            .Where(s => s.CompletedAt.HasValue)
             .AsQueryable();
+
+        if (userIdFilter.HasValue)
+            sessionQuery = sessionQuery.Where(s => s.UserId == userIdFilter.Value);
+
+        var totalCount = await sessionQuery.CountAsync();
 
         if (query.Page > 0 && query.PageSize > 0)
         {
-            session = session
+            sessionQuery = sessionQuery
+                .OrderByDescending(s => s.CompletedAt)
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize);
         }
+        else
+        {
+            sessionQuery = sessionQuery.OrderByDescending(s => s.CompletedAt);
+        }
+
+        var sessions = await sessionQuery.ToListAsync();
 
         var result = new PagedResult<SessionCompleteResponse>();
-        result.TotalCount = session.Count();
-
-        result.Items = session.Select(s => new SessionCompleteResponse
+        result.TotalCount = totalCount;
+        result.Items = sessions.Select(s => new SessionCompleteResponse
         {
             Id = s.Id,
             TreeType = s.TreeType,
+            ProjectName = s.ProjectName,
+            StartedAt = s.StartedAt,
             CompletedAt = s.CompletedAt!.Value,
+            SelectedStyleNodeId = s.SelectedStyleNodeId,
             Result = new ResultNodeCompletedResponse
             {
-                ArchitectureStyle = s.ResultNode.ArchitectureStyle,
-                Patterns = s.ResultNode.Patterns,
-                Description = s.ResultNode.Description,
+                ArchitectureStyle = s.ResultNode?.ArchitectureStyle,
+                Patterns = s.ResultNode?.Patterns,
+                Description = s.ResultNode?.Description,
+                Pros = s.ResultNode?.Pros,
+                Cons = s.ResultNode?.Cons,
             }
         }).ToList();
 
         return result;
     }
 
-    public async Task<SessionInProccessResponse?> GetSessionAsync(int sessionId)
+    public async Task<SessionInProccessResponse?> GetSessionAsync(int sessionId, long? userIdFilter = null)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
@@ -67,6 +76,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             .FirstOrDefaultAsync(s => s.Id == sessionId);
 
         if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+        if (userIdFilter.HasValue && session.UserId != userIdFilter.Value)
             throw new NotFoundException("Сессия не найдена");
 
         return new SessionInProccessResponse
@@ -329,7 +340,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         return branch;
     }
 
-    public async Task<SessionTreeResponse> GetSessionTree(int sessionId)
+    public async Task<SessionTreeResponse> GetSessionTree(int sessionId, long? userIdFilter = null)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
@@ -338,6 +349,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             .FirstOrDefaultAsync(s => s.Id == sessionId);
 
         if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+        if (userIdFilter.HasValue && session.UserId != userIdFilter.Value)
             throw new NotFoundException("Сессия не найдена");
 
         if (session.CompletedAt == null)
@@ -358,11 +371,13 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             StartedAt = session.StartedAt,
             CompletedAt = session.CompletedAt.Value,
             Tree = rootNode,
-            Result = new ResultNodeCompletedResponse
+            Result = new ResultNodeInProccessResponse
             {
                 ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
                 Patterns = session.ResultNode?.Patterns,
-                Description = session.ResultNode?.Description
+                Description = session.ResultNode?.Description,
+                Pros = session.ResultNode?.Pros,
+                Cons = session.ResultNode?.Cons,
             }
         };
     }
@@ -391,6 +406,51 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         }
 
         return dto;
+    }
+
+    /// <summary>
+    /// Возвращает объединённое дерево: для сессии по стилям — только дерево стилей;
+    /// для сессии по паттернам — дерево стилей (родительская сессия) + дерево паттернов.
+    /// </summary>
+    public async Task<CombinedSessionTreeResponse> GetCombinedSessionTree(int sessionId, long? userIdFilter = null)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
+
+        var session = await context.Sessions
+            .Include(s => s.ResultNode)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+        if (userIdFilter.HasValue && session.UserId != userIdFilter.Value)
+            throw new NotFoundException("Сессия не найдена");
+        if (session.CompletedAt == null)
+            throw new BadRequestException("Сессия ещё не завершена");
+
+        if (session.TreeType == TreeType.ArchitectureStyle)
+        {
+            var styleTree = await GetSessionTree(sessionId, userIdFilter);
+            return new CombinedSessionTreeResponse { StyleTree = styleTree, PatternsTree = null };
+        }
+
+        if (session.SelectedStyleNodeId.HasValue)
+        {
+            var styleSession = await context.Sessions
+                .FirstOrDefaultAsync(s =>
+                    s.UserId == session.UserId
+                    && s.ResultNodeId == session.SelectedStyleNodeId
+                    && s.TreeType == TreeType.ArchitectureStyle
+                    && s.CompletedAt != null);
+            if (styleSession != null)
+            {
+                var styleTree = await GetSessionTree(styleSession.Id, userIdFilter);
+                var patternsTree = await GetSessionTree(sessionId, userIdFilter);
+                return new CombinedSessionTreeResponse { StyleTree = styleTree, PatternsTree = patternsTree };
+            }
+        }
+
+        var onlyPatternsTree = await GetSessionTree(sessionId, userIdFilter);
+        return new CombinedSessionTreeResponse { StyleTree = null, PatternsTree = onlyPatternsTree };
     }
 }
 

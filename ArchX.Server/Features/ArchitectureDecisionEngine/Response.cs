@@ -1,4 +1,4 @@
-﻿using ArchX.Server.Entities;
+using ArchX.Server.Entities;
 
 namespace ArchX.Server.Features.ArchitectureDecision;
 
@@ -19,7 +19,10 @@ public class SessionInProccessResponse : SessionResponseBase
 
 public class SessionCompleteResponse : SessionResponseBase
 {
+    public string ProjectName { get; set; } = "";
+    public DateTime StartedAt { get; set; }
     public DateTime CompletedAt { get; set; }
+    public int? SelectedStyleNodeId { get; set; }
 }
 
 public abstract class NodeResponseBase
@@ -37,6 +40,8 @@ public class ResultNodeInProccessResponse : NodeResponseBase
 
 public class ResultNodeCompletedResponse : NodeResponseBase
 {
+    public List<string>? Pros { get; set; }
+    public List<string>? Cons { get; set; }
 }
 
 public class NodeResponse
@@ -90,13 +95,24 @@ public class SessionTreeResponse
     public DateTime StartedAt { get; set; }
     public DateTime CompletedAt { get; set; }
     public QuestionNodeResponse Tree { get; set; }
-    public NodeResponseBase? Result { get; set; }
+    public ResultNodeInProccessResponse? Result { get; set; }
 }
 
 public class QuestionNodeResponse
 {
     public int NodeId { get; set; }
-    public string Question { get; set; }
-    public string Answer { get; set; }
-    public QuestionNodeResponse NextNode { get; set; }
+    public string? Question { get; set; }
+    public string? Answer { get; set; }
+    public QuestionNodeResponse? NextNode { get; set; }
+}
+
+/// <summary>
+/// Объединённое дерево: сессия по стилям (опционально) + сессия по паттернам (опционально).
+/// Для сессии только по стилям — только StyleTree.
+/// Для сессии по паттернам — оба дерева (родительская сессия стилей + текущая сессия паттернов).
+/// </summary>
+public class CombinedSessionTreeResponse
+{
+    public SessionTreeResponse? StyleTree { get; set; }
+    public SessionTreeResponse? PatternsTree { get; set; }
 }
