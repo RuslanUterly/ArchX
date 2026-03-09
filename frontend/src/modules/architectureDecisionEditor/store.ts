@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import type { TreeTypeValue } from "../architectureDecision/api.ts";
 import { TreeType } from "../architectureDecision/api.ts";
-import type { NodeHierarchy, EditorNode, NodeRequest } from "./api.ts";
-import { deleteNode, getTreeHierarchy, insertBranch, updateNode } from "./api.ts";
+import type { NodeHierarchy, EditorNode, EditorLink, NodeRequest } from "./api.ts";
+import { deleteNode, getTreeHierarchy, insertBranch, updateNode, updateLink } from "./api.ts";
 
 export interface FlatNode extends EditorNode {
     depth: number;
@@ -24,10 +24,28 @@ interface EditorState {
     loadTree: () => Promise<void>;
     selectNode: (id: number | null) => void;
     updateSelectedNode: (patch: Partial<NodeRequest>) => Promise<void>;
+    getOutgoingLinks: (nodeId: number) => EditorLink[];
+    updateLinkCondition: (linkId: number, newCondition: string) => Promise<void>;
     addChildQuestion: (parentId: number, condition: string) => Promise<void>;
     addChildResult: (parentId: number, condition: string) => Promise<void>;
     removeSelectedNode: () => Promise<void>;
     clearError: () => void;
+}
+
+function findNodeInHierarchy(hierarchy: NodeHierarchy[], nodeId: number): NodeHierarchy | null {
+    for (const root of hierarchy) {
+        const found = walk(root, nodeId);
+        if (found) return found;
+    }
+    return null;
+    function walk(node: NodeHierarchy, searchId: number): NodeHierarchy | null {
+        if (node.node.id === searchId) return node;
+        for (const child of node.children) {
+            const c = walk(child, searchId);
+            if (c) return c;
+        }
+        return null;
+    }
 }
 
 const flattenHierarchy = (hierarchy: NodeHierarchy[]): Record<number, FlatNode> => {
@@ -89,6 +107,27 @@ export const useDecisionTreeEditorStore = create<EditorState>((set, get) => ({
     },
 
     selectNode: (id) => set({ selectedNodeId: id }),
+
+    getOutgoingLinks: (nodeId) => {
+        const hierarchy = get().hierarchy;
+        const found = findNodeInHierarchy(hierarchy, nodeId);
+        return found?.outgoingLinks ?? [];
+    },
+
+    updateLinkCondition: async (linkId, newCondition) => {
+        set({ loading: true, error: null });
+        try {
+            await updateLink(linkId, { newCondition });
+            await get().loadTree();
+        } catch (e) {
+            set({
+                error:
+                    e instanceof Error ? e.message : "Не удалось обновить ответ (связь)",
+            });
+        } finally {
+            set({ loading: false });
+        }
+    },
 
     updateSelectedNode: async (patch) => {
         const state = get();

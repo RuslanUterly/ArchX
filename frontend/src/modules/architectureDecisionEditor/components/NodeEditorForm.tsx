@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Button, Group, Stack, TextInput, Textarea, TagsInput, Select } from "@mantine/core";
+import { Button, Group, Stack, Text, TextInput, Textarea, TagsInput, Select, Box } from "@mantine/core";
 import { useDecisionTreeEditorStore } from "../store.ts";
 
 export default function NodeEditorForm() {
@@ -7,17 +7,27 @@ export default function NodeEditorForm() {
     const addChildQuestion = useDecisionTreeEditorStore((s) => s.addChildQuestion);
     const addChildResult = useDecisionTreeEditorStore((s) => s.addChildResult);
     const removeSelectedNode = useDecisionTreeEditorStore((s) => s.removeSelectedNode);
+    const getOutgoingLinks = useDecisionTreeEditorStore((s) => s.getOutgoingLinks);
+    const updateLinkCondition = useDecisionTreeEditorStore((s) => s.updateLinkCondition);
     const loading = useDecisionTreeEditorStore((s) => s.loading);
 
     const selectedNodeId = useDecisionTreeEditorStore((s) => s.selectedNodeId);
     const nodes = useDecisionTreeEditorStore((s) => s.nodes);
+    const hierarchy = useDecisionTreeEditorStore((s) => s.hierarchy);
 
     const selectedNode = useMemo(() => {
         if (!selectedNodeId) return null;
         return nodes[selectedNodeId] || null;
     }, [selectedNodeId, nodes]);
 
+    const outgoingLinks = useMemo(() => {
+        if (!selectedNodeId) return [];
+        return getOutgoingLinks(selectedNodeId);
+    }, [selectedNodeId, getOutgoingLinks, hierarchy]);
+
     const [condition, setCondition] = useState("");
+    const [editingLinkId, setEditingLinkId] = useState<number | null>(null);
+    const [editingLinkCondition, setEditingLinkCondition] = useState("");
 
     const [questionText, setQuestionText] = useState("");
     const [architectureStyle, setArchitectureStyle] = useState("");
@@ -38,6 +48,12 @@ export default function NodeEditorForm() {
         setCons(selectedNode.cons ?? []);
         setType((selectedNode.type as "Question" | "Result") ?? "Question");
     }, [selectedNode]);
+
+    useEffect(() => {
+        if (editingLinkId == null) return;
+        const link = outgoingLinks.find((l) => l.id === editingLinkId);
+        setEditingLinkCondition(link?.condition ?? "");
+    }, [editingLinkId, outgoingLinks]);
 
     if (!selectedNode) {
         return null;
@@ -113,6 +129,63 @@ export default function NodeEditorForm() {
                 onChange={setCons}
                 placeholder="Добавьте минус и нажмите Enter"
             />
+
+            {outgoingLinks.length > 0 && (
+                <Box mt="sm">
+                    <Text size="sm" fw={500} mb="xs">
+                        Ответы на вопрос (редактирование)
+                    </Text>
+                    <Stack gap="xs">
+                        {outgoingLinks.map((link) => (
+                            <Box key={link.id ?? link.childId}>
+                                {editingLinkId === link.id && link.id != null ? (
+                                    <Group gap="xs" wrap="nowrap">
+                                        <TextInput
+                                            size="xs"
+                                            placeholder="Текст ответа"
+                                            value={editingLinkCondition}
+                                            onChange={(e) => setEditingLinkCondition(e.currentTarget.value)}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <Button
+                                            size="xs"
+                                            loading={loading}
+                                            onClick={() => {
+                                                void updateLinkCondition(link.id!, editingLinkCondition.trim());
+                                                setEditingLinkId(null);
+                                            }}
+                                        >
+                                            Сохранить
+                                        </Button>
+                                        <Button
+                                            size="xs"
+                                            variant="subtle"
+                                            onClick={() => setEditingLinkId(null)}
+                                        >
+                                            Отмена
+                                        </Button>
+                                    </Group>
+                                ) : (
+                                    <Group gap="xs" wrap="nowrap" justify="space-between">
+                                        <Text size="sm" c="dimmed">
+                                            {link.condition || "(без текста)"}
+                                        </Text>
+                                        {link.id != null && (
+                                            <Button
+                                                size="xs"
+                                                variant="light"
+                                                onClick={() => setEditingLinkId(link.id)}
+                                            >
+                                                Изменить
+                                            </Button>
+                                        )}
+                                    </Group>
+                                )}
+                            </Box>
+                        ))}
+                    </Stack>
+                </Box>
+            )}
 
             <Group justify="space-between" mt="sm">
                 <Button variant="light" onClick={handleSave} loading={loading}>
