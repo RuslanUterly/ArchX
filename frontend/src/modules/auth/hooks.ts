@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { login as apiLogin, register as apiRegister } from './api';
 import { useAuthStore } from './store';
-import type {Credentials, LoginResponse, RegisterResponse} from "./types.ts";
+import type {Credentials, LoginResponse, RegisterData, RegisterResponse} from "./types.ts";
 //import {useProfileStore} from "../profile/store.ts";
 
 export const useLogin = () => {
@@ -18,7 +18,7 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-    return useMutation<RegisterResponse, Error, Credentials>({
+    return useMutation<RegisterResponse, Error, RegisterData>({
         mutationFn: (credentials) => apiRegister(credentials),
         onSuccess: (data) => {
             console.log('Registration successful:', data.message);

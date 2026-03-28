@@ -1,4 +1,4 @@
-import type {Credentials, LoginResponse, RegisterResponse} from './types';
+import type {Credentials, LoginResponse, RegisterData, RegisterResponse} from './types';
 import {baseUrl} from "../../shared/api/options.ts";
 
 const BASE_URL = baseUrl + '/api/v1/auth';
@@ -19,7 +19,7 @@ export const login = async (data: Credentials): Promise<LoginResponse> => {
     return { accessToken: token };
 };
 
-export const register = async (data: Credentials): Promise<RegisterResponse> => {
+export const register = async (data: RegisterData): Promise<RegisterResponse> => {
     const res = await fetch(`${BASE_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

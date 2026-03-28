@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest registerRequest)
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto registerRequest)
     {
         var result = await authService.RegisterAsync(registerRequest);
 

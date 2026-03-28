@@ -29,8 +29,11 @@ public class AuthService(
         return token;
     }
 
-    public async Task<long> RegisterAsync(RegisterRequest request)
+    public async Task<long> RegisterAsync(RegisterRequestDto request)
     {
+        if (!Enum.IsDefined(typeof(UserType), request.UserType))
+            throw new BadRequestException("Укажите корректную должность");
+
         if (await userManager.FindByEmailAsync(request.Email) is not null)
             throw new NotFoundException("Пользователь уже зарегистрирован");
 
@@ -38,6 +41,7 @@ public class AuthService(
         {
             Email = request.Email,
             UserName = request.Email,
+            UserType = request.UserType,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);
