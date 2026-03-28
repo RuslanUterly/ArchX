@@ -1,17 +1,15 @@
 using System.Security.Claims;
-using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.Shared.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ArchX.Server.Features.ArchitectureDecision;
 
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
-public class DecisionTreeController(DecisionTreeService service, IDbContextFactory<ArchXContext> dbFactory) : ControllerBase
+public class DecisionTreeController(DecisionTreeService service) : ControllerBase
 {
     private long? GetCurrentUserId()
     {
@@ -61,13 +59,16 @@ public class DecisionTreeController(DecisionTreeService service, IDbContextFacto
         if (session.CompletedAt != null)
         {
             var resultNode = session.ResultNode;
+            var patterns = await service.GetAggregatedPatternsForCompletedSessionAsync(
+                session.Path,
+                session.ResultNodeId);
             return Ok(new
             {
                 Id = session.Id,
                 Completed = true,
                 TreeType = session.TreeType,
                 ArchitectureStyle = resultNode.ArchitectureStyle,
-                Patterns = resultNode.Patterns,
+                Patterns = patterns,
                 Description = resultNode.Description,
                 Pros = resultNode.Pros,
                 Cons = resultNode.Cons,

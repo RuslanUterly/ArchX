@@ -39,24 +39,31 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 
         var result = new PagedResult<SessionCompleteResponse>();
         result.TotalCount = totalCount;
-        result.Items = sessions.Select(s => new SessionCompleteResponse
+        var items = new List<SessionCompleteResponse>();
+        foreach (var s in sessions)
         {
-            Id = s.Id,
-            TreeType = s.TreeType,
-            ProjectName = s.ProjectName,
-            StartedAt = s.StartedAt,
-            CompletedAt = s.CompletedAt!.Value,
-            SelectedStyleNodeId = s.SelectedStyleNodeId,
-            Result = new ResultNodeCompletedResponse
+            var patterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
+                context, s.Path, s.ResultNodeId);
+            items.Add(new SessionCompleteResponse
             {
-                ArchitectureStyle = s.ResultNode?.ArchitectureStyle,
-                Patterns = s.ResultNode?.Patterns,
-                Description = s.ResultNode?.Description,
-                Pros = s.ResultNode?.Pros,
-                Cons = s.ResultNode?.Cons,
-            }
-        }).ToList();
+                Id = s.Id,
+                TreeType = s.TreeType,
+                ProjectName = s.ProjectName,
+                StartedAt = s.StartedAt,
+                CompletedAt = s.CompletedAt!.Value,
+                SelectedStyleNodeId = s.SelectedStyleNodeId,
+                Result = new ResultNodeCompletedResponse
+                {
+                    ArchitectureStyle = s.ResultNode?.ArchitectureStyle,
+                    Patterns = patterns,
+                    Description = s.ResultNode?.Description,
+                    Pros = s.ResultNode?.Pros,
+                    Cons = s.ResultNode?.Cons,
+                }
+            });
+        }
 
+        result.Items = items;
         return result;
     }
 
@@ -80,6 +87,13 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         if (userIdFilter.HasValue && session.UserId != userIdFilter.Value)
             throw new NotFoundException("Сессия не найдена");
 
+        List<string>? resultPatterns = null;
+        if (session.ResultNode != null && session.CompletedAt.HasValue)
+            resultPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
+                context, session.Path, session.ResultNodeId);
+        else if (session.ResultNode != null)
+            resultPatterns = session.ResultNode.Patterns;
+
         return new SessionInProccessResponse
         {
             Id = session.Id,
@@ -91,7 +105,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             Result = session.ResultNode != null ? new ResultNodeInProccessResponse
             {
                 ArchitectureStyle = session.ResultNode.ArchitectureStyle,
-                Patterns = session.ResultNode.Patterns,
+                Patterns = resultPatterns,
                 Description = session.ResultNode.Description,
                 Pros = session.ResultNode.Pros,
                 Cons = session.ResultNode.Cons
@@ -170,6 +184,16 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         return session;
     }
 
+    /// <summary>
+    /// Паттерны по всему пути завершённой сессии (вопросы + итоговый узел).
+    /// </summary>
+    public async Task<List<string>> GetAggregatedPatternsForCompletedSessionAsync(
+        IReadOnlyList<int> path,
+        int? resultNodeId)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
+        return await DecisionTreeHelper.AggregatePatternsAlongPathAsync(context, path, resultNodeId);
+    }
 
     public async Task<Session> ContinueWithPatternsAsync(int styleSessionId)
     {
@@ -272,6 +296,9 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             .Where(l => pathIds.Contains(l.ParentId) && pathIds.Contains(l.ChildId))
             .ToListAsync();
 
+        var aggregatedPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
+            context, session.Path, session.ResultNodeId);
+
         // Формируем структуру ветки
         var branch = new SessionBranchResponse
         {
@@ -283,7 +310,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             Result = new ResultNodeInProccessResponse
             {
                 ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
-                Patterns = session.ResultNode?.Patterns ?? new List<string>(),
+                Patterns = aggregatedPatterns,
                 Description = session.ResultNode?.Description,
                 Pros = session.ResultNode?.Pros ?? new List<string>(),
                 Cons = session.ResultNode?.Cons ?? new List<string>()
@@ -361,6 +388,9 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             .Where(n => pathIds.Contains(n.Id))
             .ToDictionaryAsync(n => n.Id);
 
+        var aggregatedPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
+            context, session.Path, session.ResultNodeId);
+
         // Рекурсивно строим дерево
         var rootNode = await BuildQuestionTree(nodes, session, pathIds[0], 0);
 
@@ -374,7 +404,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             Result = new ResultNodeInProccessResponse
             {
                 ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
-                Patterns = session.ResultNode?.Patterns,
+                Patterns = aggregatedPatterns,
                 Description = session.ResultNode?.Description,
                 Pros = session.ResultNode?.Pros,
                 Cons = session.ResultNode?.Cons,
@@ -483,6 +513,54 @@ public static class DecisionTreeHelper
             .FirstOrDefaultAsync(l => l.ParentId == currentNodeId && l.Condition == answer);
 
         return link?.Child;
+    }
+
+    /// <summary>
+    /// Объединяет паттерны узлов вдоль пройденного пути (вопросы) и итогового узла.
+    /// Порядок: как в пути слева направо, затем паттерны результата; дубликаты по строке опускаются (первое вхождение).
+    /// </summary>
+    public static async Task<List<string>> AggregatePatternsAlongPathAsync(
+        ArchXContext context,
+        IReadOnlyList<int> pathNodeIds,
+        int? resultNodeId)
+    {
+        if (pathNodeIds.Count == 0 && !resultNodeId.HasValue)
+            return new List<string>();
+
+        var idSet = new HashSet<int>();
+        foreach (var id in pathNodeIds)
+            idSet.Add(id);
+        if (resultNodeId.HasValue)
+            idSet.Add(resultNodeId.Value);
+
+        var nodes = await context.Nodes
+            .AsNoTracking()
+            .Where(n => idSet.Contains(n.Id))
+            .ToDictionaryAsync(n => n.Id);
+
+        static void AddPatterns(Node? node, List<string> ordered, HashSet<string> seen)
+        {
+            if (node == null) return;
+            foreach (var p in node.Patterns)
+            {
+                if (string.IsNullOrWhiteSpace(p)) continue;
+                if (seen.Add(p))
+                    ordered.Add(p);
+            }
+        }
+
+        var ordered = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in pathNodeIds)
+        {
+            if (nodes.TryGetValue(id, out var node))
+                AddPatterns(node, ordered, seen);
+        }
+
+        if (resultNodeId.HasValue && nodes.TryGetValue(resultNodeId.Value, out var result))
+            AddPatterns(result, ordered, seen);
+
+        return ordered;
     }
 }
 
