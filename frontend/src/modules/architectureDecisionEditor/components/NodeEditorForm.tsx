@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button, Group, Stack, Text, TextInput, Textarea, TagsInput, Select, Box } from "@mantine/core";
-import { useDecisionTreeEditorStore } from "../store.ts";
+import {
+    useDecisionTreeEditorStore,
+    collectAllLinksFromHierarchy,
+    wouldCreateCycle,
+} from "../store.ts";
 
 export default function NodeEditorForm() {
     const updateSelectedNode = useDecisionTreeEditorStore((s) => s.updateSelectedNode);
@@ -9,6 +13,7 @@ export default function NodeEditorForm() {
     const removeSelectedNode = useDecisionTreeEditorStore((s) => s.removeSelectedNode);
     const getOutgoingLinks = useDecisionTreeEditorStore((s) => s.getOutgoingLinks);
     const updateLinkCondition = useDecisionTreeEditorStore((s) => s.updateLinkCondition);
+    const linkToExistingChild = useDecisionTreeEditorStore((s) => s.linkToExistingChild);
     const loading = useDecisionTreeEditorStore((s) => s.loading);
 
     const selectedNodeId = useDecisionTreeEditorStore((s) => s.selectedNodeId);
@@ -36,6 +41,7 @@ export default function NodeEditorForm() {
     const [pros, setPros] = useState<string[]>([]);
     const [cons, setCons] = useState<string[]>([]);
     const [type, setType] = useState<"Question" | "Result">("Question");
+    const [existingTargetId, setExistingTargetId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!selectedNode) return;
@@ -55,6 +61,32 @@ export default function NodeEditorForm() {
         setEditingLinkCondition(link?.condition ?? "");
     }, [editingLinkId, outgoingLinks]);
 
+    const targetNodeOptions = useMemo(() => {
+        return Object.values(nodes)
+            .filter((n) => n.id != null && n.id !== selectedNodeId)
+            .map((n) => {
+                const id = n.id as number;
+                const label =
+                    n.type === "Result"
+                        ? (n.architectureStyle?.trim() || `Результат #${id}`)
+                        : (n.questionText?.trim() || `Вопрос #${id}`);
+                return { value: String(id), label: `#${id} — ${label}` };
+            })
+            .sort((a, b) => a.label.localeCompare(b.label, "ru"));
+    }, [nodes, selectedNodeId]);
+
+    const canAddBranch = condition.trim().length > 0;
+    const existingTargetNum = existingTargetId != null ? Number(existingTargetId) : NaN;
+    const canLinkExisting =
+        selectedNodeId != null &&
+        canAddBranch &&
+        Number.isFinite(existingTargetNum) &&
+        !wouldCreateCycle(
+            collectAllLinksFromHierarchy(hierarchy),
+            selectedNodeId,
+            existingTargetNum,
+        );
+
     if (!selectedNode) {
         return null;
     }
@@ -70,8 +102,6 @@ export default function NodeEditorForm() {
             cons,
         });
     };
-
-    const canAddBranch = condition.trim().length > 0;
 
     return (
         <Stack gap="sm">
@@ -198,11 +228,38 @@ export default function NodeEditorForm() {
 
             <Group grow mt="sm">
                 <TextInput
-                    label="Условие для новой ветки"
+                    label="Условие для новой ветки или связи"
                     placeholder="Например: Высокая нагрузка"
                     value={condition}
                     onChange={(event) => setCondition(event.currentTarget.value)}
                 />
+            </Group>
+
+            <Select
+                label="Связать с существующим узлом"
+                description="Несколько веток могут вести к одному узлу (как в схемах микросервисов). Условие выше должно быть уникальным среди ответов этого узла."
+                placeholder="Выберите узел"
+                searchable
+                clearable
+                data={targetNodeOptions}
+                value={existingTargetId}
+                onChange={setExistingTargetId}
+            />
+
+            <Group justify="flex-start">
+                <Button
+                    variant="light"
+                    disabled={!canLinkExisting}
+                    loading={loading}
+                    onClick={() => {
+                        if (!canLinkExisting || selectedNodeId == null || !Number.isFinite(existingTargetNum)) return;
+                        void linkToExistingChild(selectedNodeId, existingTargetNum, condition.trim());
+                        setCondition("");
+                        setExistingTargetId(null);
+                    }}
+                >
+                    Добавить связь к выбранному узлу
+                </Button>
             </Group>
 
             <Group justify="flex-start">

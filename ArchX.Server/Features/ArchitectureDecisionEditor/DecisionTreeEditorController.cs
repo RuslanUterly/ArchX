@@ -1,4 +1,4 @@
-﻿using ArchX.Server.Entities;
+using ArchX.Server.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

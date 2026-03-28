@@ -131,7 +131,7 @@
 //     );
 // }
 
-import type { NodeHierarchy } from "../api.ts";
+import type { EditorLink, NodeHierarchy } from "../api.ts";
 import { useMemo } from "react";
 import ReactFlow, {
     Background,
@@ -149,8 +149,7 @@ interface TreeGraphProps {
 }
 
 const buildGraph = (hierarchy: NodeHierarchy[]) => {
-    // Создаём новый экземпляр графа для каждого вызова
-    const dagreGraph = new dagre.graphlib.Graph();
+    const dagreGraph = new dagre.graphlib.Graph({ multigraph: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ 
         rankdir: 'TB',
@@ -161,65 +160,63 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
     });
 
     const edges: Edge[] = [];
-    
-    // Сначала собираем все узлы и рёбра
-    const collectNodesAndEdges = (h: NodeHierarchy, parentId?: number, condition?: string) => {
+    const addedEdgeNames = new Set<string>();
+    const expandedNodes = new Set<number>();
+
+    const visit = (h: NodeHierarchy, parentId?: number, link?: EditorLink) => {
         const id = h.node.id;
         if (id == null) return;
 
-        // Определяем текст для отображения
-        // let labelText = '';
-        // if (h.node.type === "Result") {
-        //     labelText = h.node.architectureStyle ?? h.node.patterns ?? `Результат #${id}`;
-        // } else {
-        //     labelText = h.node.questionText ?? `Вопрос #${id}`;
-        // }
-        
-        // // Обрезаем слишком длинный текст
-        // if (labelText.length > 50) {
-        //     labelText = labelText.substring(0, 47) + '...';
-        // }
-
         const label =
-            h?.node.type === "Result"
+            h.node.type === "Result"
                 ? h.node.architectureStyle ?? h.node.patterns?.join("\n") ?? `#${id}`
-                : h?.node.questionText ?? `Вопрос #${id}`;
+                : h.node.questionText ?? `Вопрос #${id}`;
 
-        // Добавляем узел в граф dagre
         dagreGraph.setNode(String(id), { 
-            label: label,
+            label,
             width: 200,
             height: 80,
-            originalNode: h // сохраняем оригинальный узел для стилей
         });
 
-        // Добавляем ребро в dagre и в массив edges
-        if (parentId && condition) {
-            dagreGraph.setEdge(String(parentId), String(id), { 
-                label: condition,
-                width: 1,
-                height: 1
-            });
-            
-            edges.push({
-                id: `${parentId}-${id}`,
-                source: String(parentId),
-                target: String(id),
-                label: condition,
-                animated: false,
-                style: { strokeWidth: 1.5 },
-            });
+        if (parentId != null && link != null) {
+            const edgeName =
+                link.id != null ? `link-${link.id}` : `e-${parentId}-${id}-${link.condition}`;
+            if (!addedEdgeNames.has(edgeName)) {
+                addedEdgeNames.add(edgeName);
+                dagreGraph.setEdge(
+                    String(parentId),
+                    String(id),
+                    { label: link.condition, width: 1, height: 1 },
+                    edgeName,
+                );
+                edges.push({
+                    id: edgeName,
+                    source: String(parentId),
+                    target: String(id),
+                    label: link.condition,
+                    animated: false,
+                    style: { strokeWidth: 1.5 },
+                });
+            }
         }
 
-        // Рекурсивно обрабатываем дочерние узлы
-        h.children.forEach(child => {
-            const link = h.outgoingLinks.find(l => l.childId === child.node.id);
-            collectNodesAndEdges(child, id, link?.condition);
-        });
+        if (expandedNodes.has(id)) return;
+        expandedNodes.add(id);
+
+        const { children, outgoingLinks } = h;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            const ol = outgoingLinks[i];
+            if (ol && child.node.id === ol.childId) {
+                visit(child, id, ol);
+            } else {
+                const fb = outgoingLinks.find((l) => l.childId === child.node.id);
+                visit(child, id, fb);
+            }
+        }
     };
 
-    // Запускаем сбор для всех корневых узлов
-    hierarchy.forEach(h => collectNodesAndEdges(h));
+    hierarchy.forEach((root) => visit(root));
 
     // Вычисляем позиции с помощью dagre
     try {

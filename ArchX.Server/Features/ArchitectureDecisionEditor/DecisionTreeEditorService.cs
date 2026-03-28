@@ -1,4 +1,4 @@
-﻿using ArchX.Server.Database;
+using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.Shared.Exteptions;
 using Microsoft.EntityFrameworkCore;
@@ -456,9 +456,18 @@ public class DecisionTreeEditorService(IDbContextFactory<ArchXContext> dbFactory
     /// <summary>
     /// Добавить новую связь между существующими узлами
     /// </summary>
-    public async Task<Link> AddLinkAsync(int parentId, int childId, string condition)
+    public async Task<LinkResponse> AddLinkAsync(int parentId, int childId, string condition)
     {
         using var context = await dbFactory.CreateDbContextAsync();
+
+        var parent = await context.Nodes.FindAsync(parentId);
+        var child = await context.Nodes.FindAsync(childId);
+        if (parent == null)
+            throw new InvalidOperationException($"Узел-родитель {parentId} не найден");
+        if (child == null)
+            throw new InvalidOperationException($"Узел {childId} не найден");
+        if (parent.TreeType != child.TreeType)
+            throw new InvalidOperationException("Оба узла должны принадлежать одному типу дерева");
 
         // Проверяем, не существует ли уже такая связь
         var existing = await context.Links
@@ -477,7 +486,13 @@ public class DecisionTreeEditorService(IDbContextFactory<ArchXContext> dbFactory
         context.Links.Add(link);
         await context.SaveChangesAsync();
 
-        return link;
+        return new LinkResponse
+        {
+            Id = link.Id,
+            ParentId = link.ParentId,
+            ChildId = link.ChildId,
+            Condition = link.Condition
+        };
     }
 
     /// <summary>

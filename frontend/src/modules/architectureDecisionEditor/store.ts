@@ -2,7 +2,14 @@ import { create } from "zustand";
 import type { TreeTypeValue } from "../architectureDecision/api.ts";
 import { TreeType } from "../architectureDecision/api.ts";
 import type { NodeHierarchy, EditorNode, EditorLink, NodeRequest } from "./api.ts";
-import { deleteNode, getTreeHierarchy, insertBranch, updateNode, updateLink } from "./api.ts";
+import {
+    addLink,
+    deleteNode,
+    getTreeHierarchy,
+    insertBranch,
+    updateNode,
+    updateLink,
+} from "./api.ts";
 
 export interface FlatNode extends EditorNode {
     depth: number;
@@ -28,6 +35,7 @@ interface EditorState {
     updateLinkCondition: (linkId: number, newCondition: string) => Promise<void>;
     addChildQuestion: (parentId: number, condition: string) => Promise<void>;
     addChildResult: (parentId: number, condition: string) => Promise<void>;
+    linkToExistingChild: (parentId: number, childId: number, condition: string) => Promise<void>;
     removeSelectedNode: () => Promise<void>;
     clearError: () => void;
 }
@@ -54,10 +62,13 @@ const flattenHierarchy = (hierarchy: NodeHierarchy[]): Record<number, FlatNode> 
     const walk = (node: NodeHierarchy, depth: number) => {
         const id = node.node.id;
         if (id != null) {
-            result[id] = {
-                ...node.node,
-                depth,
-            };
+            const prev = result[id];
+            if (!prev || depth < prev.depth) {
+                result[id] = {
+                    ...node.node,
+                    depth,
+                };
+            }
         }
         node.children.forEach((child) => walk(child, depth + 1));
     };
@@ -65,6 +76,53 @@ const flattenHierarchy = (hierarchy: NodeHierarchy[]): Record<number, FlatNode> 
     hierarchy.forEach((h) => walk(h, 0));
     return result;
 };
+
+/** Все уникальные рёбра графа (для проверки циклов при добавлении связи). */
+export function collectAllLinksFromHierarchy(hierarchy: NodeHierarchy[]): EditorLink[] {
+    const list: EditorLink[] = [];
+    const seen = new Set<string>();
+    const keyOf = (l: EditorLink) =>
+        l.id != null ? `id:${l.id}` : `${l.parentId}-${l.childId}-${l.condition}`;
+
+    const walk = (h: NodeHierarchy) => {
+        for (const l of h.outgoingLinks) {
+            const k = keyOf(l);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            list.push(l);
+        }
+        for (const c of h.children) walk(c);
+    };
+
+    hierarchy.forEach(walk);
+    return list;
+}
+
+/** true, если из childId уже есть путь к parentId (добавление parent→child замкнёт цикл). */
+export function wouldCreateCycle(
+    links: EditorLink[],
+    parentId: number,
+    childId: number,
+): boolean {
+    if (parentId === childId) return true;
+    const adj = new Map<number, number[]>();
+    for (const l of links) {
+        const arr = adj.get(l.parentId);
+        if (arr) arr.push(l.childId);
+        else adj.set(l.parentId, [l.childId]);
+    }
+    const stack = [childId];
+    const visited = new Set<number>();
+    while (stack.length > 0) {
+        const n = stack.pop()!;
+        if (n === parentId) return true;
+        if (visited.has(n)) continue;
+        visited.add(n);
+        const next = adj.get(n);
+        if (next) for (const x of next) stack.push(x);
+    }
+    return false;
+}
 
 export const useDecisionTreeEditorStore = create<EditorState>((set, get) => ({
     treeType: TreeType.ArchitectureStyle,
@@ -211,6 +269,36 @@ export const useDecisionTreeEditorStore = create<EditorState>((set, get) => ({
             set({
                 error:
                     e instanceof Error ? e.message : "Не удалось добавить результат",
+            });
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    linkToExistingChild: async (parentId, childId, condition) => {
+        const trimmed = condition.trim();
+        if (!trimmed) {
+            set({ error: "Укажите условие (ответ) для связи" });
+            return;
+        }
+        if (parentId === childId) {
+            set({ error: "Нельзя связать узел сам с собой" });
+            return;
+        }
+        const links = collectAllLinksFromHierarchy(get().hierarchy);
+        if (wouldCreateCycle(links, parentId, childId)) {
+            set({ error: "Такая связь создаст цикл в графе" });
+            return;
+        }
+        set({ loading: true, error: null });
+        try {
+            await addLink({ parentId, childId, condition: trimmed });
+            await get().loadTree();
+            set({ selectedNodeId: parentId });
+        } catch (e) {
+            set({
+                error:
+                    e instanceof Error ? e.message : "Не удалось добавить связь к существующему узлу",
             });
         } finally {
             set({ loading: false });

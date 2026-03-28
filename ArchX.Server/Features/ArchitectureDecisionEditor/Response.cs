@@ -22,3 +22,10 @@ public class NodeResponse
     public List<string>? Cons { get; set; }
 }
 
+public class LinkResponse
+{
+    public int? Id { get; set; }
+    public int ParentId { get; set; }
+    public int ChildId { get; set; }
+    public string Condition { get; set; }
+}
