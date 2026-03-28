@@ -5,6 +5,8 @@ var server = builder.AddProject<Projects.ArchX_Server>("server")
     .WithExternalHttpEndpoints();
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
+    .WithEndpoint("http", endpoint => endpoint.Port = 3000)
+    .WithExternalHttpEndpoints()
     .WithReference(server)
     .WaitFor(server);
 
