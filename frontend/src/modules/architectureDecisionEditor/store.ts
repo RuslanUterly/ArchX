@@ -4,6 +4,7 @@ import { TreeType } from "../architectureDecision/api.ts";
 import type { NodeHierarchy, EditorNode, EditorLink, NodeRequest } from "./api.ts";
 import {
     addLink,
+    deleteLink,
     deleteNode,
     getTreeHierarchy,
     insertBranch,
@@ -33,6 +34,7 @@ interface EditorState {
     updateSelectedNode: (patch: Partial<NodeRequest>) => Promise<void>;
     getOutgoingLinks: (nodeId: number) => EditorLink[];
     updateLinkCondition: (linkId: number, newCondition: string) => Promise<void>;
+    removeOutgoingLink: (linkId: number) => Promise<void>;
     addChildQuestion: (parentId: number, condition: string) => Promise<void>;
     addChildResult: (parentId: number, condition: string) => Promise<void>;
     linkToExistingChild: (parentId: number, childId: number, condition: string) => Promise<void>;
@@ -173,14 +175,33 @@ export const useDecisionTreeEditorStore = create<EditorState>((set, get) => ({
     },
 
     updateLinkCondition: async (linkId, newCondition) => {
+        const parentId = get().selectedNodeId;
         set({ loading: true, error: null });
         try {
             await updateLink(linkId, { newCondition });
             await get().loadTree();
+            if (parentId != null) set({ selectedNodeId: parentId });
         } catch (e) {
             set({
                 error:
                     e instanceof Error ? e.message : "Не удалось обновить ответ (связь)",
+            });
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    removeOutgoingLink: async (linkId) => {
+        const parentId = get().selectedNodeId;
+        set({ loading: true, error: null });
+        try {
+            await deleteLink(linkId);
+            await get().loadTree();
+            if (parentId != null) set({ selectedNodeId: parentId });
+        } catch (e) {
+            set({
+                error:
+                    e instanceof Error ? e.message : "Не удалось удалить связь",
             });
         } finally {
             set({ loading: false });

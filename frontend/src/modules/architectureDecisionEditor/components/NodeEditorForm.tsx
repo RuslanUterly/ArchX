@@ -13,6 +13,7 @@ export default function NodeEditorForm() {
     const removeSelectedNode = useDecisionTreeEditorStore((s) => s.removeSelectedNode);
     const getOutgoingLinks = useDecisionTreeEditorStore((s) => s.getOutgoingLinks);
     const updateLinkCondition = useDecisionTreeEditorStore((s) => s.updateLinkCondition);
+    const removeOutgoingLink = useDecisionTreeEditorStore((s) => s.removeOutgoingLink);
     const linkToExistingChild = useDecisionTreeEditorStore((s) => s.linkToExistingChild);
     const loading = useDecisionTreeEditorStore((s) => s.loading);
 
@@ -103,6 +104,16 @@ export default function NodeEditorForm() {
         });
     };
 
+    const childLinkCaption = (childId: number) => {
+        const n = nodes[childId];
+        if (!n) return `→ узел #${childId}`;
+        const label =
+            n.type === "Result"
+                ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат #${childId}`)
+                : (n.questionText?.trim() || `Вопрос #${childId}`);
+        return `→ #${childId} — ${label}`;
+    };
+
     return (
         <Stack gap="sm">
             <Select
@@ -163,7 +174,7 @@ export default function NodeEditorForm() {
             {outgoingLinks.length > 0 && (
                 <Box mt="sm">
                     <Text size="sm" fw={500} mb="xs">
-                        Ответы на вопрос (редактирование)
+                        Исходящие связи (ответы)
                     </Text>
                     <Stack gap="xs">
                         {outgoingLinks.map((link) => (
@@ -196,20 +207,45 @@ export default function NodeEditorForm() {
                                         </Button>
                                     </Group>
                                 ) : (
-                                    <Group gap="xs" wrap="nowrap" justify="space-between">
-                                        <Text size="sm" c="dimmed">
-                                            {link.condition || "(без текста)"}
+                                    <Stack gap={4}>
+                                        <Text size="xs" c="dimmed">
+                                            {childLinkCaption(link.childId)}
                                         </Text>
-                                        {link.id != null && (
-                                            <Button
-                                                size="xs"
-                                                variant="light"
-                                                onClick={() => setEditingLinkId(link.id)}
-                                            >
-                                                Изменить
-                                            </Button>
-                                        )}
-                                    </Group>
+                                        <Group gap="xs" wrap="nowrap" justify="space-between">
+                                            <Text size="sm" c="dimmed">
+                                                {link.condition || "(без текста)"}
+                                            </Text>
+                                            {link.id != null && (
+                                                <Group gap="xs" wrap="nowrap">
+                                                    <Button
+                                                        size="xs"
+                                                        variant="light"
+                                                        onClick={() => setEditingLinkId(link.id)}
+                                                    >
+                                                        Изменить
+                                                    </Button>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="subtle"
+                                                        color="red"
+                                                        loading={loading}
+                                                        onClick={() => {
+                                                            if (
+                                                                !window.confirm(
+                                                                    "Удалить эту связь? Узел-потомок останется в дереве, если на него ведут другие рёбра.",
+                                                                )
+                                                            ) {
+                                                                return;
+                                                            }
+                                                            void removeOutgoingLink(link.id!);
+                                                        }}
+                                                    >
+                                                        Удалить ребро
+                                                    </Button>
+                                                </Group>
+                                            )}
+                                        </Group>
+                                    </Stack>
                                 )}
                             </Box>
                         ))}
