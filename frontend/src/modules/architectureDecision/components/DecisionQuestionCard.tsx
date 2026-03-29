@@ -3,17 +3,26 @@ import { mainColor } from "../../../shared/components/theme/colors.ts";
 
 interface DecisionQuestionCardProps {
     question: string;
+    description?: string | null;
     options: string[];
     onAnswer: (answer: string) => void;
     loading: boolean;
 }
 
 export default function DecisionQuestionCard(props: DecisionQuestionCardProps) {
-    const { question, options, onAnswer, loading } = props;
+    const { question, description, options, onAnswer, loading } = props;
+    const desc = description?.trim();
 
     return (
         <Stack gap="md">
-            <Text fw={500}>{question}</Text>
+            <Stack gap="xs">
+                <Text fw={500}>{question}</Text>
+                {desc ? (
+                    <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
+                        {desc}
+                    </Text>
+                ) : null}
+            </Stack>
 
             <Stack gap="xs">
                 {options.map((option) => (

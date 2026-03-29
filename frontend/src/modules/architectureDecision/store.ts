@@ -18,6 +18,7 @@ export interface DecisionState {
     sessionId: number;
     treeType: TreeTypeValue;
     currentQuestion: string | null;
+    currentQuestionDescription: string | null;
     options: string[];
     completed: boolean;
     result: ResultNodeResponse | null;
@@ -62,6 +63,7 @@ const mapSessionToState = (
     sessionId: session.id,
     treeType: session.treeType,
     currentQuestion: session.currentQuestion,
+    currentQuestionDescription: session.currentQuestionDescription?.trim() || null,
     options: session.options ?? [],
     completed: session.completed,
     result: session.result ?? null,
@@ -115,6 +117,8 @@ export const useDecisionTreeStore = create<DecisionTreeStore>((set, get) => ({
                     sessionId: session.id,
                     treeType: session.treeType,
                     currentQuestion: session.currentQuestion,
+                    currentQuestionDescription:
+                        session.currentQuestionDescription?.trim() || null,
                     options: session.options ?? [],
                     completed: session.completed,
                     result: session.result ?? null,
@@ -151,6 +155,7 @@ export const useDecisionTreeStore = create<DecisionTreeStore>((set, get) => ({
                         ...session,
                         completed: true,
                         currentQuestion: null,
+                        currentQuestionDescription: null,
                         options: [],
                         result,
                         canContinueWithPatterns: response.canContinueWithPatterns,

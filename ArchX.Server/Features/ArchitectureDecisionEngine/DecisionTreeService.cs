@@ -99,6 +99,9 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             Id = session.Id,
             TreeType = session.TreeType,
             CurrentQuestion = session.CurrentNode?.QuestionText,
+            CurrentQuestionDescription = session.CurrentNode?.Type == "Question"
+                ? session.CurrentNode.Description
+                : null,
             Options = session.CurrentNode?.OutgoingLinks.Select(l => l.Condition).ToList(),
             Completed = session.CompletedAt != null,
             IsStyleSelected = session.IsStyleSelected,

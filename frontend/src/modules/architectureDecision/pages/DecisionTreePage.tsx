@@ -53,6 +53,7 @@ export default function DecisionTreePage() {
                                 {!session.completed && session.currentQuestion && (
                                     <DecisionQuestionCard
                                         question={session.currentQuestion}
+                                        description={session.currentQuestionDescription}
                                         options={session.options}
                                         onAnswer={answer}
                                         loading={loading}

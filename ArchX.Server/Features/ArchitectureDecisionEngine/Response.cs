@@ -12,6 +12,7 @@ public abstract class SessionResponseBase
 public class SessionInProccessResponse : SessionResponseBase
 {
     public string? CurrentQuestion { get; set; }
+    public string? CurrentQuestionDescription { get; set; }
     public List<string>? Options { get; set; }
     public bool Completed { get; set; }
     public bool IsStyleSelected { get; set; }

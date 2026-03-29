@@ -22,6 +22,7 @@ export interface SessionResponse {
     id: number;
     treeType: TreeTypeValue;
     currentQuestion: string | null;
+    currentQuestionDescription?: string | null;
     options: string[] | null;
     completed: boolean;
     result?: ResultNodeResponse | null;
