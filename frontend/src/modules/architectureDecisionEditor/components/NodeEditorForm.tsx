@@ -1,5 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
-import { Button, Group, Stack, Text, TextInput, Textarea, TagsInput, Select, Box } from "@mantine/core";
+import {
+    Box,
+    Button,
+    Group,
+    Select,
+    Stack,
+    Tabs,
+    TagsInput,
+    Text,
+    Textarea,
+    TextInput,
+} from "@mantine/core";
 import {
     useDecisionTreeEditorStore,
     collectAllLinksFromHierarchy,
@@ -115,216 +126,247 @@ export default function NodeEditorForm() {
     };
 
     return (
-        <Stack gap="sm">
-            <Select
-                label="Тип узла"
-                data={[
-                    { value: "Question", label: "Вопрос" },
-                    { value: "Result", label: "Результат" },
-                ]}
-                value={type}
-                onChange={(value) => setType((value as "Question" | "Result") ?? "Question")}
-            />
+        <Tabs defaultValue="node" keepMounted={false}>
+            <Tabs.List grow>
+                <Tabs.Tab value="node">Узел</Tabs.Tab>
+                <Tabs.Tab value="edges">Связи</Tabs.Tab>
+                <Tabs.Tab value="existing">К существующему</Tabs.Tab>
+            </Tabs.List>
 
-            {type === "Question" && (
-                <Textarea
-                    label="Текст вопроса"
-                    value={questionText}
-                    onChange={(event) => setQuestionText(event.currentTarget.value)}
-                    minRows={2}
-                />
-            )}
+            <Tabs.Panel value="node" pt="md">
+                <Stack gap="sm">
+                    <Select
+                        label="Тип узла"
+                        data={[
+                            { value: "Question", label: "Вопрос" },
+                            { value: "Result", label: "Результат" },
+                        ]}
+                        value={type}
+                        onChange={(value) => setType((value as "Question" | "Result") ?? "Question")}
+                    />
 
-            {type === "Result" && (
-                <TextInput
-                    label="Архитектурный стиль"
-                    value={architectureStyle}
-                    onChange={(event) => setArchitectureStyle(event.currentTarget.value)}
-                />
-            )}
+                    {type === "Question" && (
+                        <Textarea
+                            label="Текст вопроса"
+                            value={questionText}
+                            onChange={(event) => setQuestionText(event.currentTarget.value)}
+                            minRows={2}
+                        />
+                    )}
 
-            <Textarea
-                label="Описание"
-                value={description}
-                onChange={(event) => setDescription(event.currentTarget.value)}
-                minRows={2}
-            />
+                    {type === "Result" && (
+                        <TextInput
+                            label="Архитектурный стиль"
+                            value={architectureStyle}
+                            onChange={(event) => setArchitectureStyle(event.currentTarget.value)}
+                        />
+                    )}
 
-            <TagsInput
-                label="Паттерны"
-                value={patterns}
-                onChange={setPatterns}
-                placeholder="Добавьте паттерн и нажмите Enter"
-            />
+                    <Textarea
+                        label="Описание"
+                        value={description}
+                        onChange={(event) => setDescription(event.currentTarget.value)}
+                        minRows={2}
+                    />
 
-            <TagsInput
-                label="Плюсы"
-                value={pros}
-                onChange={setPros}
-                placeholder="Добавьте плюс и нажмите Enter"
-            />
+                    <TagsInput
+                        label="Паттерны"
+                        value={patterns}
+                        onChange={setPatterns}
+                        placeholder="Добавьте паттерн и нажмите Enter"
+                    />
 
-            <TagsInput
-                label="Минусы"
-                value={cons}
-                onChange={setCons}
-                placeholder="Добавьте минус и нажмите Enter"
-            />
+                    <TagsInput
+                        label="Плюсы"
+                        value={pros}
+                        onChange={setPros}
+                        placeholder="Добавьте плюс и нажмите Enter"
+                    />
 
-            {outgoingLinks.length > 0 && (
-                <Box mt="sm">
-                    <Text size="sm" fw={500} mb="xs">
-                        Исходящие связи (ответы)
+                    <TagsInput
+                        label="Минусы"
+                        value={cons}
+                        onChange={setCons}
+                        placeholder="Добавьте минус и нажмите Enter"
+                    />
+
+                    <Group justify="space-between" mt="sm">
+                        <Button variant="light" onClick={handleSave} loading={loading}>
+                            Сохранить узел
+                        </Button>
+                        <Button color="red" variant="outline" onClick={removeSelectedNode} loading={loading}>
+                            Удалить узел
+                        </Button>
+                    </Group>
+                </Stack>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="edges" pt="md">
+                <Stack gap="md">
+                    <Text size="sm" c="dimmed">
+                        Редактирование исходящих рёбер и создание новых веток (новый дочерний узел).
                     </Text>
-                    <Stack gap="xs">
-                        {outgoingLinks.map((link) => (
-                            <Box key={link.id ?? link.childId}>
-                                {editingLinkId === link.id && link.id != null ? (
-                                    <Group gap="xs" wrap="nowrap">
-                                        <TextInput
-                                            size="xs"
-                                            placeholder="Текст ответа"
-                                            value={editingLinkCondition}
-                                            onChange={(e) => setEditingLinkCondition(e.currentTarget.value)}
-                                            style={{ flex: 1 }}
-                                        />
-                                        <Button
-                                            size="xs"
-                                            loading={loading}
-                                            onClick={() => {
-                                                void updateLinkCondition(link.id!, editingLinkCondition.trim());
-                                                setEditingLinkId(null);
-                                            }}
-                                        >
-                                            Сохранить
-                                        </Button>
-                                        <Button
-                                            size="xs"
-                                            variant="subtle"
-                                            onClick={() => setEditingLinkId(null)}
-                                        >
-                                            Отмена
-                                        </Button>
-                                    </Group>
-                                ) : (
-                                    <Stack gap={4}>
-                                        <Text size="xs" c="dimmed">
-                                            {childLinkCaption(link.childId)}
-                                        </Text>
-                                        <Group gap="xs" wrap="nowrap" justify="space-between">
-                                            <Text size="sm" c="dimmed">
-                                                {link.condition || "(без текста)"}
-                                            </Text>
-                                            {link.id != null && (
-                                                <Group gap="xs" wrap="nowrap">
-                                                    <Button
-                                                        size="xs"
-                                                        variant="light"
-                                                        onClick={() => setEditingLinkId(link.id)}
-                                                    >
-                                                        Изменить
-                                                    </Button>
-                                                    <Button
-                                                        size="xs"
-                                                        variant="subtle"
-                                                        color="red"
-                                                        loading={loading}
-                                                        onClick={() => {
-                                                            if (
-                                                                !window.confirm(
-                                                                    "Удалить эту связь? Узел-потомок останется в дереве, если на него ведут другие рёбра.",
-                                                                )
-                                                            ) {
-                                                                return;
-                                                            }
-                                                            void removeOutgoingLink(link.id!);
-                                                        }}
-                                                    >
-                                                        Удалить ребро
-                                                    </Button>
-                                                </Group>
-                                            )}
+
+                    {outgoingLinks.length === 0 ? (
+                        <Text size="sm" c="dimmed">
+                            Нет исходящих связей.
+                        </Text>
+                    ) : (
+                        <Stack gap="xs">
+                            {outgoingLinks.map((link) => (
+                                <Box key={link.id ?? link.childId}>
+                                    {editingLinkId === link.id && link.id != null ? (
+                                        <Group gap="xs" wrap="nowrap">
+                                            <TextInput
+                                                size="xs"
+                                                placeholder="Текст ответа"
+                                                value={editingLinkCondition}
+                                                onChange={(e) => setEditingLinkCondition(e.currentTarget.value)}
+                                                style={{ flex: 1 }}
+                                            />
+                                            <Button
+                                                size="xs"
+                                                loading={loading}
+                                                onClick={() => {
+                                                    void updateLinkCondition(link.id!, editingLinkCondition.trim());
+                                                    setEditingLinkId(null);
+                                                }}
+                                            >
+                                                Сохранить
+                                            </Button>
+                                            <Button
+                                                size="xs"
+                                                variant="subtle"
+                                                onClick={() => setEditingLinkId(null)}
+                                            >
+                                                Отмена
+                                            </Button>
                                         </Group>
-                                    </Stack>
-                                )}
-                            </Box>
-                        ))}
-                    </Stack>
-                </Box>
-            )}
+                                    ) : (
+                                        <Stack gap={4}>
+                                            <Text size="xs" c="dimmed">
+                                                {childLinkCaption(link.childId)}
+                                            </Text>
+                                            <Group gap="xs" wrap="nowrap" justify="space-between">
+                                                <Text size="sm" c="dimmed">
+                                                    {link.condition || "(без текста)"}
+                                                </Text>
+                                                {link.id != null && (
+                                                    <Group gap="xs" wrap="nowrap">
+                                                        <Button
+                                                            size="xs"
+                                                            variant="light"
+                                                            onClick={() => setEditingLinkId(link.id)}
+                                                        >
+                                                            Изменить
+                                                        </Button>
+                                                        <Button
+                                                            size="xs"
+                                                            variant="subtle"
+                                                            color="red"
+                                                            loading={loading}
+                                                            onClick={() => {
+                                                                if (
+                                                                    !window.confirm(
+                                                                        "Удалить эту связь? Узел-потомок останется в дереве, если на него ведут другие рёбра.",
+                                                                    )
+                                                                ) {
+                                                                    return;
+                                                                }
+                                                                void removeOutgoingLink(link.id!);
+                                                            }}
+                                                        >
+                                                            Удалить ребро
+                                                        </Button>
+                                                    </Group>
+                                                )}
+                                            </Group>
+                                        </Stack>
+                                    )}
+                                </Box>
+                            ))}
+                        </Stack>
+                    )}
 
-            <Group justify="space-between" mt="sm">
-                <Button variant="light" onClick={handleSave} loading={loading}>
-                    Сохранить узел
-                </Button>
-                <Button color="red" variant="outline" onClick={removeSelectedNode} loading={loading}>
-                    Удалить узел
-                </Button>
-            </Group>
+                    <TextInput
+                        label="Условие новой ветки"
+                        description="Текст ответа на текущий узел; должен быть уникальным среди исходящих связей."
+                        placeholder="Например: Высокая нагрузка"
+                        value={condition}
+                        onChange={(event) => setCondition(event.currentTarget.value)}
+                    />
 
-            <Group grow mt="sm">
-                <TextInput
-                    label="Условие для новой ветки или связи"
-                    placeholder="Например: Высокая нагрузка"
-                    value={condition}
-                    onChange={(event) => setCondition(event.currentTarget.value)}
-                />
-            </Group>
+                    <Group justify="flex-start">
+                        <Button
+                            variant="outline"
+                            disabled={!canAddBranch}
+                            loading={loading}
+                            onClick={() => {
+                                if (!canAddBranch || !selectedNode.id) return;
+                                void addChildQuestion(selectedNode.id, condition.trim());
+                                setCondition("");
+                            }}
+                        >
+                            Добавить вопрос по условию
+                        </Button>
+                        <Button
+                            variant="outline"
+                            disabled={!canAddBranch}
+                            loading={loading}
+                            onClick={() => {
+                                if (!canAddBranch || !selectedNode.id) return;
+                                void addChildResult(selectedNode.id, condition.trim());
+                                setCondition("");
+                            }}
+                        >
+                            Добавить результат по условию
+                        </Button>
+                    </Group>
+                </Stack>
+            </Tabs.Panel>
 
-            <Select
-                label="Связать с существующим узлом"
-                description="Несколько веток могут вести к одному узлу (как в схемах микросервисов). Условие выше должно быть уникальным среди ответов этого узла."
-                placeholder="Выберите узел"
-                searchable
-                clearable
-                data={targetNodeOptions}
-                value={existingTargetId}
-                onChange={setExistingTargetId}
-            />
+            <Tabs.Panel value="existing" pt="md">
+                <Stack gap="md">
+                    <Text size="sm" c="dimmed">
+                        Добавить ребро к уже существующему узлу (несколько веток к одному узлу, как на схемах
+                        микросервисов).
+                    </Text>
 
-            <Group justify="flex-start">
-                <Button
-                    variant="light"
-                    disabled={!canLinkExisting}
-                    loading={loading}
-                    onClick={() => {
-                        if (!canLinkExisting || selectedNodeId == null || !Number.isFinite(existingTargetNum)) return;
-                        void linkToExistingChild(selectedNodeId, existingTargetNum, condition.trim());
-                        setCondition("");
-                        setExistingTargetId(null);
-                    }}
-                >
-                    Добавить связь к выбранному узлу
-                </Button>
-            </Group>
+                    <TextInput
+                        label="Условие связи"
+                        description="Должно быть уникальным среди исходящих связей этого узла."
+                        placeholder="Например: Высокая нагрузка"
+                        value={condition}
+                        onChange={(event) => setCondition(event.currentTarget.value)}
+                    />
 
-            <Group justify="flex-start">
-                <Button
-                    variant="outline"
-                    disabled={!canAddBranch}
-                    loading={loading}
-                    onClick={() => {
-                        if (!canAddBranch || !selectedNode.id) return;
-                        void addChildQuestion(selectedNode.id, condition.trim());
-                        setCondition("");
-                    }}
-                >
-                    Добавить вопрос по условию
-                </Button>
-                <Button
-                    variant="outline"
-                    disabled={!canAddBranch}
-                    loading={loading}
-                    onClick={() => {
-                        if (!canAddBranch || !selectedNode.id) return;
-                        void addChildResult(selectedNode.id, condition.trim());
-                        setCondition("");
-                    }}
-                >
-                    Добавить результат по условию
-                </Button>
-            </Group>
-        </Stack>
+                    <Select
+                        label="Целевой узел"
+                        placeholder="Выберите узел"
+                        searchable
+                        clearable
+                        data={targetNodeOptions}
+                        value={existingTargetId}
+                        onChange={setExistingTargetId}
+                    />
+
+                    <Button
+                        variant="light"
+                        disabled={!canLinkExisting}
+                        loading={loading}
+                        onClick={() => {
+                            if (!canLinkExisting || selectedNodeId == null || !Number.isFinite(existingTargetNum))
+                                return;
+                            void linkToExistingChild(selectedNodeId, existingTargetNum, condition.trim());
+                            setCondition("");
+                            setExistingTargetId(null);
+                        }}
+                    >
+                        Добавить связь к выбранному узлу
+                    </Button>
+                </Stack>
+            </Tabs.Panel>
+        </Tabs>
     );
 }
 
