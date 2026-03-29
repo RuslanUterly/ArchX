@@ -68,7 +68,7 @@ export default function NodeEditorForm() {
                 const id = n.id as number;
                 const label =
                     n.type === "Result"
-                        ? (n.architectureStyle?.trim() || `Результат #${id}`)
+                        ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат #${id}`)
                         : (n.questionText?.trim() || `Вопрос #${id}`);
                 return { value: String(id), label: `#${id} — ${label}` };
             })

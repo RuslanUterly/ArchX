@@ -169,7 +169,10 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
 
         const label =
             h.node.type === "Result"
-                ? h.node.architectureStyle ?? h.node.patterns?.join("\n") ?? `#${id}`
+                ? h.node.architectureStyle ?? 
+                    ((h.node.patterns != null && h.node.patterns?.length > 0) ? 
+                        h.node?.patterns?.join("\n") : h.node.description) ?? 
+                    `#${id}`
                 : h.node.questionText ?? `Вопрос #${id}`;
 
         dagreGraph.setNode(String(id), { 
