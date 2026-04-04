@@ -1,4 +1,5 @@
 import './App.css';
+import { Footer } from "./shared/components/footer";
 import { Header } from "./modules/header";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./shared/components/route/ProtectedRoute.tsx";
@@ -23,6 +24,7 @@ function App() {
         <div className="container-fill">
             <Header />
 
+            <div className="container-fill__main">
             <Routes>
                 <Route
                     path="/"
@@ -140,8 +142,9 @@ function App() {
                     </LayoutCenter>
                 } />
             </Routes>
+            </div>
 
-            {/*<Footer />*/}
+            <Footer />
         </div>
     )
 }

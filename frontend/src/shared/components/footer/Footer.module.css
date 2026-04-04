@@ -1,0 +1,18 @@
+.root {
+    margin-top: auto;
+    border-top: 1px solid light-dark(var(--mantine-color-gray-2), transparent);
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+}
+
+.link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 500;
+    color: light-dark(var(--mantine-color-dark-6), var(--mantine-color-gray-3));
+
+    &:hover {
+        color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-3));
+    }
+}
