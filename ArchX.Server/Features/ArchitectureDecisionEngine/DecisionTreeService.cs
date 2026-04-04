@@ -21,6 +21,23 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         if (userIdFilter.HasValue)
             sessionQuery = sessionQuery.Where(s => s.UserId == userIdFilter.Value);
 
+        // Список: только сессии по деревьям паттернов; плюс сессии по стилям, для которых нет
+        // завершённой сессии паттернов с тем же пользователем/проектом и SelectedStyleNodeId = ResultNodeId стиля.
+        sessionQuery = sessionQuery.Where(s =>
+            s.TreeType == TreeType.MonolithPatterns
+            || s.TreeType == TreeType.ModularMonolithPatterns
+            || s.TreeType == TreeType.MicroservicesPatterns
+            || (s.TreeType == TreeType.ArchitectureStyle
+                && (!s.ResultNodeId.HasValue
+                    || !context.Sessions.Any(p =>
+                        p.CompletedAt != null
+                        && p.UserId == s.UserId
+                        && p.ProjectName == s.ProjectName
+                        && p.SelectedStyleNodeId == s.ResultNodeId
+                        && (p.TreeType == TreeType.MonolithPatterns
+                            || p.TreeType == TreeType.ModularMonolithPatterns
+                            || p.TreeType == TreeType.MicroservicesPatterns)))));
+
         var totalCount = await sessionQuery.CountAsync();
 
         if (query.Page > 0 && query.PageSize > 0)

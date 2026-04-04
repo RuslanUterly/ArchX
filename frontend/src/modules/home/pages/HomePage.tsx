@@ -81,8 +81,7 @@ export default function HomePage() {
 
     return (
         <Container size="md" style={{ width: "100%" }}>
-            <Space h="lg" />
-            <Space h="lg" />
+            <Space h="xl" />
             <Stack gap="lg">
                 <StatisticsMiniBlock />
 
@@ -123,7 +122,7 @@ export default function HomePage() {
                             ) : isAuthenticated ? (
                                 <>
                                     <Text size="sm" c="dimmed">
-                                        Вы авторизованы — можно начинать.
+                                        Чтобы начать, нажмите кнопку →
                                     </Text>
                                     <Button color={mainColor} onClick={() => navigate("/decision-tree")}>
                                         Начать опрос
@@ -222,6 +221,7 @@ export default function HomePage() {
                     </Paper>
                 )}
             </Stack>
+            <Space h="xl" />
         </Container>
     );
 }

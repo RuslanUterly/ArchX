@@ -135,9 +135,8 @@ export default function SessionDetailPage() {
         styleTree?.completedAt ?? patternsTree?.completedAt ?? "";
 
     return (
-        // <LayoutCenter>
+        <>
             <Container size="md" style={{ width: "100%" }}>
-                <Space h="xl" />
                 <Space h="xl" />
                 <Stack gap="lg">
                     <div>
@@ -195,7 +194,8 @@ export default function SessionDetailPage() {
                         </Paper>
                     )}
                 </Stack>
+                <Space h="xl" />
             </Container>
-        // </LayoutCenter>
+        </>
     );
 }

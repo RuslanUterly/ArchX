@@ -156,7 +156,7 @@ function ProfessionPatternsBlock({
 }) {
     return (
         <Stack gap="md">
-            <Title order={4}>Паттерны по профессии (только сессии с заполненной профессией)</Title>
+            <Title order={4}>Паттерны по профессии</Title>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {items.map((b) => (
                     <Paper key={b.profession} p="md" radius="md" withBorder>
@@ -191,10 +191,6 @@ function ProfessionPatternsBlock({
 function AdminSection({ admin }: { admin: AdminStatistics }) {
     return (
         <Stack gap="xl">
-            <Title order={3} c={mainColor}>
-                Администрирование
-            </Title>
-
             <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
                 <StatTile label="Завершённых сессий" value={admin.completedSessionsTotal} />
                 <StatTile label="Обращений обратной связи" value={admin.feedbackTicketsTotal} />
@@ -211,7 +207,7 @@ function AdminSection({ admin }: { admin: AdminStatistics }) {
             </SimpleGrid>
 
             <Stack gap="md">
-                <Title order={4}>Все пользователи (без разбивки)</Title>
+                <Title order={4}>Все пользователи</Title>
                 <Text size="sm" c="dimmed">
                     Учитываются все завершённые сессии. Ниже — отдельно только сессии пользователей с
                     указанным в профиле грейдом или профессией.
@@ -231,13 +227,13 @@ function AdminSection({ admin }: { admin: AdminStatistics }) {
             </Stack>
 
             <GradeBreakdownBlock
-                heading="Стили по грейду (только сессии с заполненным грейдом в профиле)"
+                heading="Стили по грейду"
                 items={admin.topArchitectureStylesByGrade}
                 emptyHint="Нет завершённых сессий по выбору стиля для этого грейда."
             />
 
             <GradeBreakdownBlock
-                heading="Паттерны по грейду (только сессии с заполненным грейдом)"
+                heading="Паттерны по грейду"
                 items={admin.topPatternsByGrade}
                 emptyHint="Нет завершённых сессий по деревьям паттернов для этого грейда."
             />
@@ -295,7 +291,7 @@ export default function StatisticsPage() {
                 <Text size="sm" c="dimmed">
                     {isAdmin
                         ? "Сводка по сервису: сессии, обращения и разрезы по аудитории."
-                        : "Сводка по опросам и обращениям. Данные считаются из уже сохранённых сессий и тикетов, отдельные таблицы для статистики не используются."}
+                        : "Сводка по опросам и обращениям. Данные считаются из уже сохранённых сессий и тикетов."}
                 </Text>
 
                 {loading && (
