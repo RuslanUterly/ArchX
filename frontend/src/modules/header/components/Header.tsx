@@ -27,6 +27,8 @@ export const Header = () => {
         [isAuthenticated, roles],
     );
 
+    const isAuthRoute = location.pathname.startsWith("/auth/");
+
     const activeNavId = resolveActiveNavId(location.pathname, visibleNavItems);
     const tabValue = visibleNavItems.some((i) => i.id === activeNavId)
         ? activeNavId
@@ -101,28 +103,30 @@ export const Header = () => {
                         <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="sm" />
                     </div>
                 </Container>
-                <Container size="md">
-                    <Tabs
-                        value={tabValue}
-                        onChange={handleTabChange}
-                        variant="outline"
-                        visibleFrom="sm"
-                        color={mainColor}
-                        classNames={{
-                            root: classes.tabs,
-                            list: classes.tabsList,
-                            tab: classes.tab,
-                        }}
-                    >
-                        <Tabs.List>
-                            {visibleNavItems.map((item) => (
-                                <Tabs.Tab key={item.id} value={item.id}>
-                                    {item.label}
-                                </Tabs.Tab>
-                            ))}
-                        </Tabs.List>
-                    </Tabs>
-                </Container>
+                {!isAuthRoute && (
+                    <Container size="md">
+                        <Tabs
+                            value={tabValue}
+                            onChange={handleTabChange}
+                            variant="outline"
+                            visibleFrom="sm"
+                            color={mainColor}
+                            classNames={{
+                                root: classes.tabs,
+                                list: classes.tabsList,
+                                tab: classes.tab,
+                            }}
+                        >
+                            <Tabs.List>
+                                {visibleNavItems.map((item) => (
+                                    <Tabs.Tab key={item.id} value={item.id}>
+                                        {item.label}
+                                    </Tabs.Tab>
+                                ))}
+                            </Tabs.List>
+                        </Tabs>
+                    </Container>
+                )}
             </header>
         </>
     );

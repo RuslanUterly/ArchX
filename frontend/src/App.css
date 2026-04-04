@@ -11,6 +11,9 @@ html {
 .container-fill__main {
     flex: 1;
     min-height: 0;
+    /* So children with flex: 1 (e.g. LayoutCenter) fill space and can vertically center */
+    display: flex;
+    flex-direction: column;
 }
 
 .container-fill-height {

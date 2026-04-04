@@ -7,7 +7,7 @@ export default function RegisterPage() {
 
     return (
         <Center>
-            <Container size="sm" mt="xl">
+            <Container size="sm">
                 <Paper p="md" radius="md" withBorder>
                     <RegisterForm onSuccess={() => navigate('/auth/login')} />
                 </Paper>
