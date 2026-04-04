@@ -2,9 +2,9 @@ import {Anchor, Button, Group, Select, Stack, Text, TextInput, Title} from '@man
 import { useState } from 'react';
 import { useRegister } from '../hooks';
 import {mainColor} from "../../../shared/components/theme/colors.ts";
-import {IconAt, IconBriefcase, IconLock} from "@tabler/icons-react";
+import {IconAt, IconBriefcase, IconChartBarPopular, IconLock} from "@tabler/icons-react";
 import {useNavigate} from "react-router-dom";
-import { UserType } from '../types';
+import { Grade, UserType } from '../types';
 
 const USER_TYPE_OPTIONS: { value: string; label: string }[] = [
     { value: String(UserType.Architect), label: 'Архитектор ПО' },
@@ -17,24 +17,37 @@ const USER_TYPE_OPTIONS: { value: string; label: string }[] = [
     { value: String(UserType.Other), label: 'Другое' },
 ];
 
+const GRADE_OPTIONS: { value: string; label: string }[] = [
+    { value: String(Grade.Junior), label: 'Джуниор' },
+    { value: String(Grade.Middle), label: 'Мидл' },
+    { value: String(Grade.Senior), label: 'Сеньор' },
+    { value: String(Grade.TeamLead), label: 'Тимлид' },
+];
+
 export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [userType, setUserType] = useState<string | null>(null);
+    const [grade, setGrade] = useState<string | null>(null);
     const registerMutation = useRegister();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (userType === null) return;
+        if (userType === null || grade === null) return;
         registerMutation.mutate(
-            { email, password, userType: Number(userType) as UserType },
+            {
+                email,
+                password,
+                userType: Number(userType) as UserType,
+                grade: Number(grade) as Grade,
+            },
             { onSuccess: () => onSuccess?.() },
         );
     };
 
-    const canSubmit = Boolean(email.trim() && password && userType !== null);
+    const canSubmit = Boolean(email.trim() && password && userType !== null && grade !== null);
 
     return (
         <form onSubmit={handleSubmit}>
@@ -62,6 +75,17 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     value={userType}
                     onChange={setUserType}
                     leftSection={<IconBriefcase size={16} />}
+                    required
+                    searchable
+                    nothingFoundMessage="Нет совпадений"
+                />
+                <Select
+                    label="Грейд"
+                    placeholder="Выберите грейд"
+                    data={GRADE_OPTIONS}
+                    value={grade}
+                    onChange={setGrade}
+                    leftSection={<IconChartBarPopular size={16} />}
                     required
                     searchable
                     nothingFoundMessage="Нет совпадений"
