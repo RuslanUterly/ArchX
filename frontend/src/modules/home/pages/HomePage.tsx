@@ -18,6 +18,7 @@ import {
     type SessionCompleteResponse,
 } from "../../architectureDecision/api.ts";
 import { TreeType } from "../../architectureDecision/api.ts";
+import StatisticsMiniBlock from "../../statistics/components/StatisticsMiniBlock.tsx";
 
 const SESSIONS_PAGE_SIZE = 5;
 
@@ -76,6 +77,8 @@ export default function HomePage() {
     return (
         <Container size="md">
             <Stack gap="lg">
+                <StatisticsMiniBlock />
+
                 <Paper p="lg" radius="md" withBorder>
                     <Stack gap="md">
                         <Title order={2} c={mainColor}>

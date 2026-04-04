@@ -3,25 +3,29 @@ export interface Credentials {
     password: string;
 }
 
-/** Соответствует ArchX.Server.Entities.UserType */
-export enum UserType {
-    Architect = 1,
-    TeamLead,
-    BackendDeveloper,
-    FullstackDeveloper,
-    DevOps,
-    SystemsAnalyst,
-    Student,
-    Other,
-}
+/** Соответствует ArchX.Server.Entities.UserType (const вместо enum — совместимость с erasableSyntaxOnly). */
+export const UserType = {
+    Architect: 1,
+    TeamLead: 2,
+    BackendDeveloper: 3,
+    FullstackDeveloper: 4,
+    DevOps: 5,
+    SystemsAnalyst: 6,
+    Student: 7,
+    Other: 8,
+} as const;
+
+export type UserType = (typeof UserType)[keyof typeof UserType];
 
 /** Соответствует ArchX.Server.Entities.Grade */
-export enum Grade {
-    Junior = 1,
-    Middle = 2,
-    Senior = 3,
-    TeamLead = 4,
-}
+export const Grade = {
+    Junior: 1,
+    Middle: 2,
+    Senior: 3,
+    TeamLead: 4,
+} as const;
+
+export type Grade = (typeof Grade)[keyof typeof Grade];
 
 export interface RegisterData extends Credentials {
     userType: UserType;

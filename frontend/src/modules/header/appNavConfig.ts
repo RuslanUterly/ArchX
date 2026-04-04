@@ -10,6 +10,12 @@ export type AppNavItem = {
 export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     { id: "home", label: "Главная", path: "/" },
     {
+        id: "statistics",
+        label: "Статистика",
+        path: "/statistics",
+        requireAuth: true,
+    },
+    {
         id: "feedback",
         label: "Обратная связь",
         path: "/feedback",

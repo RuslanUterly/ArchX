@@ -11,6 +11,7 @@ import DecisionTreePage from "./modules/architectureDecision/pages/DecisionTreeP
 import SessionDetailPage from "./modules/architectureDecision/pages/SessionDetailPage.tsx";
 import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/DecisionTreeEditorPage.tsx";
 import FeedbackPage from "./modules/feedback/pages/FeedbackPage.tsx";
+import StatisticsPage from "./modules/statistics/pages/StatisticsPage.tsx";
 
 function App() {
 
@@ -61,6 +62,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <FeedbackPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/statistics"
+                    element={
+                        <ProtectedRoute>
+                            <StatisticsPage />
                         </ProtectedRoute>
                     }
                 />
