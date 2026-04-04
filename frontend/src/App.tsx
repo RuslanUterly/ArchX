@@ -10,6 +10,7 @@ import HomePage from "./modules/home/pages/HomePage.tsx";
 import DecisionTreePage from "./modules/architectureDecision/pages/DecisionTreePage.tsx";
 import SessionDetailPage from "./modules/architectureDecision/pages/SessionDetailPage.tsx";
 import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/DecisionTreeEditorPage.tsx";
+import FeedbackPage from "./modules/feedback/pages/FeedbackPage.tsx";
 
 function App() {
 
@@ -52,6 +53,14 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={["Admin"]}>
                             <DecisionTreeEditorPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/feedback"
+                    element={
+                        <ProtectedRoute>
+                            <FeedbackPage />
                         </ProtectedRoute>
                     }
                 />

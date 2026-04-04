@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace ArchX.Server.Entities;
@@ -36,4 +36,5 @@ public class User : IdentityUser<long>
     public UserType UserType { get; set; }
     public Grade Grade { get; set; }
     public ICollection<Session> Sessions { get; set; }
+    public ICollection<FeedbackTicket> FeedbackTickets { get; set; } = new List<FeedbackTicket>();
 }

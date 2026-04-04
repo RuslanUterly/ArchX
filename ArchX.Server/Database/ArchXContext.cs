@@ -1,4 +1,4 @@
-﻿using ArchX.Server.Entities;
+using ArchX.Server.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +11,8 @@ public class ArchXContext(DbContextOptions<ArchXContext> options) : IdentityDbCo
     public DbSet<Node> Nodes { get; set; }
     public DbSet<Link> Links { get; set; }
     public DbSet<Session> Sessions { get; set; }
+    public DbSet<FeedbackTicket> FeedbackTickets { get; set; }
+    public DbSet<FeedbackAdminReply> FeedbackAdminReplies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,6 +37,32 @@ public class ArchXContext(DbContextOptions<ArchXContext> options) : IdentityDbCo
         // Индексы для быстрого поиска
         builder.Entity<Node>().HasIndex(n => n.Type);
         builder.Entity<Session>().HasIndex(s => s.UserId);
+
+        builder.Entity<FeedbackTicket>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.FeedbackTickets)
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<FeedbackTicket>()
+            .HasOne(f => f.Session)
+            .WithMany(s => s.FeedbackTickets)
+            .HasForeignKey(f => f.SessionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<FeedbackTicket>()
+            .HasOne(f => f.AdminReply)
+            .WithOne(r => r.Ticket)
+            .HasForeignKey<FeedbackAdminReply>(r => r.FeedbackTicketId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<FeedbackAdminReply>()
+            .HasIndex(r => r.FeedbackTicketId)
+            .IsUnique();
+
+        builder.Entity<FeedbackTicket>().HasIndex(f => f.UserId);
+        builder.Entity<FeedbackTicket>().HasIndex(f => f.CreatedAt);
+        builder.Entity<FeedbackTicket>().HasIndex(f => f.SessionId);
 
         base.OnModelCreating(builder);
     }

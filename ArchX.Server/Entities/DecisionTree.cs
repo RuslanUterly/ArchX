@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ArchX.Server.Entities;
@@ -128,6 +128,8 @@ public class Session
 
     public long UserId { get; set; }      // идентификатор пользователя (можно из Identity)
     public User User { get; set; }
+
+    public ICollection<FeedbackTicket> FeedbackTickets { get; set; } = new List<FeedbackTicket>();
 
     // Для хранения результата первого дерева, если нужно перейти ко второму
     public int? SelectedStyleNodeId { get; set; }

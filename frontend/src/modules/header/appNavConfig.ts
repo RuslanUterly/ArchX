@@ -2,11 +2,19 @@ export type AppNavItem = {
     id: string;
     label: string;
     path: string;
+    /** Показывать только авторизованным (без ограничения по ролям). */
+    requireAuth?: boolean;
     allowedRoles?: readonly string[];
 };
 
 export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     { id: "home", label: "Главная", path: "/" },
+    {
+        id: "feedback",
+        label: "Обратная связь",
+        path: "/feedback",
+        requireAuth: true,
+    },
     {
         id: "editor",
         label: "Редактор деревьев",
@@ -21,10 +29,13 @@ export function filterNavItemsByAccess(
     roles: string[],
 ): AppNavItem[] {
     return items.filter((item) => {
-        if (!item.allowedRoles?.length) return true;
-        if (!isAuthenticated) return false;
-        const normalized = roles.map((r) => r.toLowerCase());
-        return item.allowedRoles.some((r) => normalized.includes(r.toLowerCase()));
+        if (item.requireAuth && !isAuthenticated) return false;
+        if (item.allowedRoles?.length) {
+            if (!isAuthenticated) return false;
+            const normalized = roles.map((r) => r.toLowerCase());
+            return item.allowedRoles.some((r) => normalized.includes(r.toLowerCase()));
+        }
+        return true;
     });
 }
 
