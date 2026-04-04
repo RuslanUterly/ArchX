@@ -1,3 +1,7 @@
+html {
+    scrollbar-gutter: stable;
+}
+
 .container-fill {
     display: flex;
     flex-direction: column;
