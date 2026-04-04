@@ -21,10 +21,19 @@ public enum UserType
     Other
 }
 
+public enum Grade
+{
+    Junior = 1,
+    Middle = 2,
+    Senior = 3,
+    TeamLead = 4,
+}
+
 public class User : IdentityUser<long>
 {
     [Key]
     public override long Id { get; set; }
     public UserType UserType { get; set; }
+    public Grade Grade { get; set; }
     public ICollection<Session> Sessions { get; set; }
 }

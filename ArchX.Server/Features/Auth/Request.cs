@@ -14,4 +14,6 @@ public class RegisterRequestDto
 
     [Required]
     public UserType UserType { get; set; }
+    [Required]
+    public Grade Grade { get; set; }
 }

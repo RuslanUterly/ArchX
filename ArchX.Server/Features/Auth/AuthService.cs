@@ -42,6 +42,7 @@ public class AuthService(
             Email = request.Email,
             UserName = request.Email,
             UserType = request.UserType,
+            Grade = request.Grade,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);

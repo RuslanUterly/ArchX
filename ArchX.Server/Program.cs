@@ -1,8 +1,10 @@
+using ArchX.Server.Database;
 using ArchX.Server.Entities;
 using ArchX.Server.Features.ArchitectureDecision;
 using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Middlewares.ErrorHandler;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ArchXContext>();
+    dbContext.Database.Migrate();
+}
 
 using (var scope = app.Services.CreateScope())
 {
