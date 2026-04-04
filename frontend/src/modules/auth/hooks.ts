@@ -2,7 +2,6 @@ import { useMutation } from '@tanstack/react-query';
 import { login as apiLogin, register as apiRegister } from './api';
 import { useAuthStore } from './store';
 import type {Credentials, LoginResponse, RegisterData, RegisterResponse} from "./types.ts";
-//import {useProfileStore} from "../profile/store.ts";
 
 export const useLogin = () => {
     const setToken = useAuthStore((state) => state.setToken);

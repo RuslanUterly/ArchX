@@ -13,6 +13,7 @@ import SessionDetailPage from "./modules/architectureDecision/pages/SessionDetai
 import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/DecisionTreeEditorPage.tsx";
 import FeedbackPage from "./modules/feedback/pages/FeedbackPage.tsx";
 import StatisticsPage from "./modules/statistics/pages/StatisticsPage.tsx";
+import ProfilePage from "./modules/profile/pages/ProfilePage.tsx";
 
 function App() {
 
@@ -73,6 +74,14 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute deniedRoles={["Admin"]} redirectTo="/">
+                            <ProfilePage />
+                        </ProtectedRoute>
+                    }
+                />
 
                 <Route path="/auth/login" element={
                     <LayoutCenter>
@@ -84,15 +93,6 @@ function App() {
                         <RegisterPage />
                     </LayoutCenter>
                 } />
-
-                {/*<Route*/}
-                {/*    path="/profile"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <ProfilePage />*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
 
                 {/*<Route*/}
                 {/*    path="/auth/hh/callback"*/}

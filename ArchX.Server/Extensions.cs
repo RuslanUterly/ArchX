@@ -5,6 +5,7 @@ using ArchX.Server.Features.ArchitectureDecisionEditor;
 using ArchX.Server.Features.Auth;
 using ArchX.Server.Features.Auth.Jwt;
 using ArchX.Server.Features.Feedback;
+using ArchX.Server.Features.Profile;
 using ArchX.Server.Features.Statistics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -129,6 +130,7 @@ public static class Extensions
         builder.Services.AddScoped<DecisionTreeService>();
         builder.Services.AddScoped<DecisionTreeEditorService>();
         builder.Services.AddScoped<FeedbackService>();
+        builder.Services.AddScoped<ProfileService>();
         builder.Services.AddScoped<StatisticsService>();
 
         return builder;

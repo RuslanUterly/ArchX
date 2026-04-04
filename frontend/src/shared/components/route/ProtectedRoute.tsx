@@ -5,12 +5,15 @@ import { useAuthStore } from '../../../modules/auth/store';
 interface ProtectedRouteProps {
     children: ReactNode;
     allowedRoles?: string[];
+    /** Если у пользователя есть любая из этих ролей — редирект (например, скрыть профиль от админа). */
+    deniedRoles?: string[];
     redirectTo?: string;
 }
 
 export default function ProtectedRoute({
     children,
     allowedRoles,
+    deniedRoles,
     redirectTo = "/decision-tree",
 }: ProtectedRouteProps) {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -28,6 +31,16 @@ export default function ProtectedRoute({
         );
 
         if (!hasAccess) {
+            return <Navigate to={redirectTo} replace />;
+        }
+    }
+
+    if (deniedRoles && deniedRoles.length > 0) {
+        const normalizedRoles = roles.map((role) => role.toLowerCase());
+        const blocked = deniedRoles.some((role) =>
+            normalizedRoles.includes(role.toLowerCase()),
+        );
+        if (blocked) {
             return <Navigate to={redirectTo} replace />;
         }
     }

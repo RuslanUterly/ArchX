@@ -80,7 +80,7 @@ export default function HomePage() {
     const to = Math.min(page * SESSIONS_PAGE_SIZE, totalCount);
 
     return (
-        <Container size="md">
+        <Container size="md" style={{ width: "100%" }}>
             <Space h="lg" />
             <Space h="lg" />
             <Stack gap="lg">

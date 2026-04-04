@@ -20,6 +20,7 @@ export const Header = () => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const roles = useAuthStore((state) => state.roles);
     const logout = useAuthStore((state) => state.logout);
+    const isAdmin = roles.some((r) => r.toLowerCase() === "admin");
 
     const visibleNavItems = useMemo(
         () => filterNavItemsByAccess(APP_NAV_ITEMS, isAuthenticated, roles),
@@ -61,9 +62,11 @@ export const Header = () => {
                                             <Button color={mainColor}>Аккаунт</Button>
                                         </Menu.Target>
                                         <Menu.Dropdown>
-                                            <Menu.Item onClick={() => navigate("/profile")}>
-                                                Профиль
-                                            </Menu.Item>
+                                            {!isAdmin && (
+                                                <Menu.Item onClick={() => navigate("/profile")}>
+                                                    Профиль
+                                                </Menu.Item>
+                                            )}
                                             <Menu.Item
                                                 color="red"
                                                 onClick={() => {

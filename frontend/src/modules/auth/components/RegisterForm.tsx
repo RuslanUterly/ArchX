@@ -5,24 +5,7 @@ import {mainColor} from "../../../shared/components/theme/colors.ts";
 import {IconAt, IconBriefcase, IconChartBarPopular, IconLock} from "@tabler/icons-react";
 import {useNavigate} from "react-router-dom";
 import { Grade, UserType } from '../types';
-
-const USER_TYPE_OPTIONS: { value: string; label: string }[] = [
-    { value: String(UserType.Architect), label: 'Архитектор ПО' },
-    { value: String(UserType.TeamLead), label: 'Тимлид / ведущий разработчик' },
-    { value: String(UserType.BackendDeveloper), label: 'Backend-разработчик' },
-    { value: String(UserType.FullstackDeveloper), label: 'Fullstack-разработчик' },
-    { value: String(UserType.DevOps), label: 'DevOps / SRE' },
-    { value: String(UserType.SystemsAnalyst), label: 'Системный аналитик' },
-    { value: String(UserType.Student), label: 'Студент' },
-    { value: String(UserType.Other), label: 'Другое' },
-];
-
-const GRADE_OPTIONS: { value: string; label: string }[] = [
-    { value: String(Grade.Junior), label: 'Джуниор' },
-    { value: String(Grade.Middle), label: 'Мидл' },
-    { value: String(Grade.Senior), label: 'Сеньор' },
-    { value: String(Grade.TeamLead), label: 'Тимлид' },
-];
+import { GRADE_OPTIONS, USER_TYPE_OPTIONS } from '../labels';
 
 export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     const navigate = useNavigate();
