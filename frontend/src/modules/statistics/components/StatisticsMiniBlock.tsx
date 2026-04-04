@@ -7,7 +7,7 @@ import {
     Stack,
     Text,
 } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
@@ -17,6 +17,13 @@ import {
     type PublicStatistics,
     type StatisticsResponse,
 } from "../api.ts";
+
+interface AdminOverviewMini {
+    totalSessions: number;
+    registeredUsers: number;
+    completedSessions: number;
+    feedbackTickets: number;
+}
 
 function StatCell({ label, value }: { label: string; value: number | string }) {
     return (
@@ -33,9 +40,15 @@ function StatCell({ label, value }: { label: string; value: number | string }) {
 
 export default function StatisticsMiniBlock() {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const roles = useAuthStore((s) => s.roles);
+    const isAdmin = useMemo(
+        () => roles.some((r) => r.toLowerCase() === "admin"),
+        [roles],
+    );
 
     const [publicData, setPublicData] = useState<PublicStatistics | null>(null);
     const [authData, setAuthData] = useState<StatisticsResponse | null>(null);
+    const [adminOverview, setAdminOverview] = useState<AdminOverviewMini | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,16 +56,33 @@ export default function StatisticsMiniBlock() {
         let cancelled = false;
         setLoading(true);
         setError(null);
+        setPublicData(null);
+        setAuthData(null);
+        setAdminOverview(null);
 
         const run = async () => {
             try {
-                if (isAuthenticated) {
-                    const s = await getStatistics();
-                    if (!cancelled) setAuthData(s);
-                } else {
+                if (!isAuthenticated) {
                     const p = await getPublicStatistics();
                     if (!cancelled) setPublicData(p);
+                    return;
                 }
+
+                if (isAdmin) {
+                    const [p, s] = await Promise.all([getPublicStatistics(), getStatistics()]);
+                    if (!cancelled) {
+                        setAdminOverview({
+                            totalSessions: p.totalSessions,
+                            registeredUsers: p.registeredUsers,
+                            completedSessions: s.admin?.completedSessionsTotal ?? 0,
+                            feedbackTickets: s.admin?.feedbackTicketsTotal ?? 0,
+                        });
+                    }
+                    return;
+                }
+
+                const s = await getStatistics();
+                if (!cancelled) setAuthData(s);
             } catch (e) {
                 if (!cancelled)
                     setError(e instanceof Error ? e.message : "Ошибка загрузки");
@@ -65,7 +95,7 @@ export default function StatisticsMiniBlock() {
         return () => {
             cancelled = true;
         };
-    }, [isAuthenticated]);
+    }, [isAuthenticated, isAdmin]);
 
     return (
         <Paper p="md" radius="md" withBorder>
@@ -92,7 +122,19 @@ export default function StatisticsMiniBlock() {
                     </Text>
                 )}
 
-                {!loading && !error && isAuthenticated && authData && (
+                {!loading && !error && isAuthenticated && isAdmin && adminOverview && (
+                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+                        <StatCell label="Всего сессий" value={adminOverview.totalSessions} />
+                        <StatCell label="Пользователей" value={adminOverview.registeredUsers} />
+                        <StatCell
+                            label="Завершённых сессий"
+                            value={adminOverview.completedSessions}
+                        />
+                        <StatCell label="Обращений в поддержку" value={adminOverview.feedbackTickets} />
+                    </SimpleGrid>
+                )}
+
+                {!loading && !error && isAuthenticated && !isAdmin && authData && (
                     <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
                         <StatCell
                             label="Сессий в сервисе"

@@ -12,6 +12,7 @@ import {
 } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { useAuthStore } from "../../auth/store.ts";
 import { getStatistics, type AdminStatistics, type StatisticsResponse } from "../api.ts";
 import { gradeLabel, professionLabel } from "../labels.ts";
 
@@ -247,6 +248,12 @@ function AdminSection({ admin }: { admin: AdminStatistics }) {
 }
 
 export default function StatisticsPage() {
+    const roles = useAuthStore((s) => s.roles);
+    const isAdmin = useMemo(
+        () => roles.some((r) => r.toLowerCase() === "admin"),
+        [roles],
+    );
+
     const [data, setData] = useState<StatisticsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -271,12 +278,12 @@ export default function StatisticsPage() {
     }, []);
 
     const completionHint = useMemo(() => {
-        if (!data) return null;
+        if (!data || isAdmin) return null;
         const { myTotalSessions, myCompletedSessions } = data.personal;
         if (myTotalSessions === 0) return null;
         const pct = Math.round((myCompletedSessions / myTotalSessions) * 100);
         return `Завершено ${pct}% от всех ваших сессий (${myCompletedSessions} из ${myTotalSessions}).`;
-    }, [data]);
+    }, [data, isAdmin]);
 
     return (
         <Container size="md" style={{ width: "100%" }}>
@@ -286,8 +293,9 @@ export default function StatisticsPage() {
                     Статистика
                 </Title>
                 <Text size="sm" c="dimmed">
-                    Сводка по опросам и обращениям. Данные считаются из уже сохранённых сессий и тикетов,
-                    отдельные таблицы для статистики не используются.
+                    {isAdmin
+                        ? "Сводка по сервису: сессии, обращения и разрезы по аудитории."
+                        : "Сводка по опросам и обращениям. Данные считаются из уже сохранённых сессий и тикетов, отдельные таблицы для статистики не используются."}
                 </Text>
 
                 {loading && (
@@ -303,29 +311,31 @@ export default function StatisticsPage() {
 
                 {!loading && !error && data && (
                     <>
-                        <Stack gap="md">
-                            <Title order={3}>Ваши показатели</Title>
-                            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                                <StatTile
-                                    label="Всего сессий в сервисе"
-                                    value={data.personal.globalTotalSessions}
-                                />
-                                <StatTile label="Ваших сессий" value={data.personal.myTotalSessions} />
-                                <StatTile
-                                    label="Завершённых вами"
-                                    value={data.personal.myCompletedSessions}
-                                />
-                                <StatTile
-                                    label="Обращений в поддержку"
-                                    value={data.personal.myFeedbackTickets}
-                                />
-                            </SimpleGrid>
-                            {completionHint && (
-                                <Text size="sm" c="dimmed">
-                                    {completionHint}
-                                </Text>
-                            )}
-                        </Stack>
+                        {!isAdmin && (
+                            <Stack gap="md">
+                                <Title order={3}>Ваши показатели</Title>
+                                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                                    <StatTile
+                                        label="Всего сессий в сервисе"
+                                        value={data.personal.globalTotalSessions}
+                                    />
+                                    <StatTile label="Ваших сессий" value={data.personal.myTotalSessions} />
+                                    <StatTile
+                                        label="Завершённых вами"
+                                        value={data.personal.myCompletedSessions}
+                                    />
+                                    <StatTile
+                                        label="Обращений в поддержку"
+                                        value={data.personal.myFeedbackTickets}
+                                    />
+                                </SimpleGrid>
+                                {completionHint && (
+                                    <Text size="sm" c="dimmed">
+                                        {completionHint}
+                                    </Text>
+                                )}
+                            </Stack>
+                        )}
 
                         {data.admin && <AdminSection admin={data.admin} />}
                     </>

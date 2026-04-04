@@ -27,9 +27,7 @@ function App() {
                 <Route
                     path="/"
                     element={
-                        <LayoutCenter>
-                            <HomePage />
-                        </LayoutCenter>
+                        <HomePage />
                     }
                 />
 

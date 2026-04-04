@@ -5,12 +5,13 @@ import {
     Loader,
     Pagination,
     Paper,
+    Space,
     Stack,
     Text,
     Title,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
 import {
@@ -49,6 +50,10 @@ export default function HomePage() {
     const navigate = useNavigate();
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const roles = useAuthStore((s) => s.roles);
+    const isAdmin = useMemo(
+        () => roles.some((r) => r.toLowerCase() === "admin"),
+        [roles],
+    );
     const isUserRole = isAuthenticated && roles.includes("User") && !roles.includes("Admin");
 
     const [sessions, setSessions] = useState<SessionCompleteResponse[]>([]);
@@ -76,6 +81,8 @@ export default function HomePage() {
 
     return (
         <Container size="md">
+            <Space h="lg" />
+            <Space h="lg" />
             <Stack gap="lg">
                 <StatisticsMiniBlock />
 
@@ -89,8 +96,31 @@ export default function HomePage() {
                             короткого опросника. Вопросы подбираются динамически по вашим ответам.
                         </Text>
 
-                        <Group justify="space-between" mt="sm">
-                            {isAuthenticated ? (
+                        <Group justify="space-between" mt="sm" align="flex-start" wrap="wrap">
+                            {isAuthenticated && isAdmin ? (
+                                <Stack gap="sm" style={{ flex: 1 }}>
+                                    <Text size="sm" c="dimmed">
+                                        Вы вошли как администратор. Управление контентом и аналитика — через
+                                        разделы ниже.
+                                    </Text>
+                                    <Group gap="sm">
+                                        <Button
+                                            color={mainColor}
+                                            variant="light"
+                                            onClick={() => navigate("/statistics")}
+                                        >
+                                            Статистика
+                                        </Button>
+                                        <Button
+                                            color={mainColor}
+                                            variant="outline"
+                                            onClick={() => navigate("/decision-tree/editor")}
+                                        >
+                                            Редактор деревьев
+                                        </Button>
+                                    </Group>
+                                </Stack>
+                            ) : isAuthenticated ? (
                                 <>
                                     <Text size="sm" c="dimmed">
                                         Вы авторизованы — можно начинать.
