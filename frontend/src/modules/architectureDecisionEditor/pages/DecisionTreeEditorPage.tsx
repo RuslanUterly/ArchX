@@ -1,19 +1,18 @@
 import {
+    ActionIcon,
     Alert,
     Container,
-    Grid,
     Group,
     Loader,
     Paper,
     Select,
     Stack,
+    Space,
     Text,
     Title,
-    Button,
-    Space,
 } from "@mantine/core";
+import { IconRefresh } from "@tabler/icons-react";
 import { useEffect } from "react";
-import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useDecisionTreeEditorStore } from "../store.ts";
 import { TreeType, type TreeTypeValue } from "../../architectureDecision/api.ts";
@@ -43,7 +42,6 @@ export default function DecisionTreeEditorPage() {
     return (
         <Container size="md" style={{ width: "100%" }}>
             <Space h="xl" />
-            <Space h="xl" />
             <Stack gap="md">
                 <Group justify="space-between">
                     <Title order={2} c={mainColor}>
@@ -59,9 +57,16 @@ export default function DecisionTreeEditorPage() {
                             }}
                             style={{ minWidth: 260 }}
                         />
-                        <Button variant="light" onClick={() => loadTree()} loading={loading}>
-                            Обновить
-                        </Button>
+                        <ActionIcon
+                            variant="light"
+                            color={mainColor}
+                            size="lg"
+                            onClick={() => loadTree()}
+                            loading={loading}
+                            aria-label="Обновить дерево"
+                        >
+                            <IconRefresh size={20} stroke={1.5} />
+                        </ActionIcon>
                     </Group>
                 </Group>
 

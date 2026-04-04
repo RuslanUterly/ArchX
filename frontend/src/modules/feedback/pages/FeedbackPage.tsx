@@ -1,4 +1,5 @@
 import {
+    ActionIcon,
     Anchor,
     Badge,
     Button,
@@ -8,16 +9,17 @@ import {
     Paper,
     Select,
     Stack,
+    Space,
     Text,
     Textarea,
     TextInput,
     Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconRefresh } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
-import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
 import { useAuthStore } from "../../auth/store.ts";
 import { getSessions, type SessionCompleteResponse } from "../../architectureDecision/api.ts";
 import {
@@ -83,10 +85,11 @@ export default function FeedbackPage() {
     const [message, setMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const [submitOk, setSubmitOk] = useState(false);
 
     const [adminModalOpen, { open: openAdminModal, close: closeAdminModal }] = useDisclosure(false);
     const [adminFocusId, setAdminFocusId] = useState<number | null>(null);
+
+    const [createModalOpen, { open: openCreateModal, close: closeCreateModal }] = useDisclosure(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -133,9 +136,21 @@ export default function FeedbackPage() {
         [sessions],
     );
 
+    const resetCreateForm = useCallback(() => {
+        setCategory(String(FeedbackCategory.Suggestion));
+        setSessionId(null);
+        setSubject("");
+        setMessage("");
+        setSubmitError(null);
+    }, []);
+
+    const handleCreateModalClose = () => {
+        resetCreateForm();
+        closeCreateModal();
+    };
+
     const handleSubmit = async () => {
         setSubmitError(null);
-        setSubmitOk(false);
         const cat = Number(category) as FeedbackCategoryValue;
         if (!Object.values(FeedbackCategory).includes(cat)) {
             setSubmitError("Выберите категорию");
@@ -154,11 +169,9 @@ export default function FeedbackPage() {
                 subject: subject.trim() || null,
                 message: message.trim(),
             });
-            setMessage("");
-            setSubject("");
-            setSessionId(null);
-            setSubmitOk(true);
+            resetCreateForm();
             await load();
+            closeCreateModal();
         } catch (e) {
             setSubmitError(e instanceof Error ? e.message : "Не удалось отправить");
         } finally {
@@ -172,8 +185,9 @@ export default function FeedbackPage() {
     };
 
     return (
-        <LayoutCenter>
-            <Container size="md">
+        <>
+            <Container size="md" style={{ width: "100%" }}>
+                <Space h="xl" />
                 <Stack gap="lg">
                     <Title order={2} c={mainColor}>
                         Обратная связь
@@ -184,67 +198,26 @@ export default function FeedbackPage() {
                             : "Опишите, что вам нравится или что стоит улучшить. При баге можно указать сессию опроса."}
                     </Text>
 
-                    {!isAdmin && (
-                        <Paper p="lg" radius="md" withBorder>
-                            <Stack gap="md">
-                                <Title order={4}>Новое обращение</Title>
-                                <Select
-                                    label="Тип"
-                                    data={[
-                                        { value: String(FeedbackCategory.Praise), label: categoryLabel[FeedbackCategory.Praise] },
-                                        { value: String(FeedbackCategory.Complaint), label: categoryLabel[FeedbackCategory.Complaint] },
-                                        { value: String(FeedbackCategory.Suggestion), label: categoryLabel[FeedbackCategory.Suggestion] },
-                                    ]}
-                                    value={category}
-                                    onChange={(v) => v && setCategory(v)}
-                                />
-                                <Select
-                                    label="Сессия опроса (если баг в конкретном проходе)"
-                                    placeholder={sessionsLoading ? "Загрузка сессий…" : "Не привязывать"}
-                                    data={sessionSelectData}
-                                    value={sessionId}
-                                    onChange={setSessionId}
-                                    disabled={sessionsLoading}
-                                    clearable
-                                />
-                                <TextInput
-                                    label="Тема (необязательно)"
-                                    placeholder="Кратко, о чём речь"
-                                    value={subject}
-                                    onChange={(e) => setSubject(e.currentTarget.value)}
-                                    maxLength={200}
-                                />
-                                <Textarea
-                                    label="Сообщение"
-                                    placeholder="Подробности"
-                                    minRows={4}
-                                    value={message}
-                                    onChange={(e) => setMessage(e.currentTarget.value)}
-                                    maxLength={4000}
-                                />
-                                {submitError && (
-                                    <Text size="sm" c="red">
-                                        {submitError}
-                                    </Text>
-                                )}
-                                {submitOk && (
-                                    <Text size="sm" c="green">
-                                        Обращение отправлено.
-                                    </Text>
-                                )}
-                                <Button color={mainColor} onClick={() => void handleSubmit()} loading={submitting}>
-                                    Отправить
-                                </Button>
-                            </Stack>
-                        </Paper>
-                    )}
-
                     <Paper p="lg" radius="md" withBorder>
-                        <Group justify="space-between" mb="md">
+                        <Group justify="space-between" mb="md" wrap="wrap">
                             <Title order={4}>{isAdmin ? "Все обращения" : "Мои обращения"}</Title>
-                            <Button variant="light" color={mainColor} onClick={() => void load()} loading={loading}>
-                                Обновить
-                            </Button>
+                            <Group gap="sm">
+                                {!isAdmin && (
+                                    <Button color={mainColor} onClick={openCreateModal}>
+                                        Новое обращение
+                                    </Button>
+                                )}
+                                <ActionIcon
+                                    variant="light"
+                                    color={mainColor}
+                                    size="lg"
+                                    onClick={() => void load()}
+                                    loading={loading}
+                                    aria-label="Обновить список"
+                                >
+                                    <IconRefresh size={20} stroke={1.5} />
+                                </ActionIcon>
+                            </Group>
                         </Group>
                         {listError && (
                             <Text size="sm" c="red" mb="sm">
@@ -269,6 +242,66 @@ export default function FeedbackPage() {
                 </Stack>
             </Container>
 
+            {!isAdmin && (
+                <Modal
+                    opened={createModalOpen}
+                    onClose={handleCreateModalClose}
+                    title="Новое обращение"
+                    size="lg"
+                    centered
+                >
+                    <Stack gap="md">
+                        <Select
+                            label="Тип"
+                            data={[
+                                { value: String(FeedbackCategory.Praise), label: categoryLabel[FeedbackCategory.Praise] },
+                                { value: String(FeedbackCategory.Complaint), label: categoryLabel[FeedbackCategory.Complaint] },
+                                { value: String(FeedbackCategory.Suggestion), label: categoryLabel[FeedbackCategory.Suggestion] },
+                            ]}
+                            value={category}
+                            onChange={(v) => v && setCategory(v)}
+                        />
+                        <Select
+                            label="Сессия опроса (если баг в конкретном проходе)"
+                            placeholder={sessionsLoading ? "Загрузка сессий…" : "Не привязывать"}
+                            data={sessionSelectData}
+                            value={sessionId}
+                            onChange={setSessionId}
+                            disabled={sessionsLoading}
+                            clearable
+                        />
+                        <TextInput
+                            label="Тема (необязательно)"
+                            placeholder="Кратко, о чём речь"
+                            value={subject}
+                            onChange={(e) => setSubject(e.currentTarget.value)}
+                            maxLength={200}
+                        />
+                        <Textarea
+                            label="Сообщение"
+                            placeholder="Подробности"
+                            minRows={5}
+                            value={message}
+                            onChange={(e) => setMessage(e.currentTarget.value)}
+                            maxLength={4000}
+                        />
+                        {submitError && (
+                            <Text size="sm" c="red">
+                                {submitError}
+                            </Text>
+                        )}
+                        <Group justify="flex-end">
+                            <Button variant="default" onClick={handleCreateModalClose}>
+                                Отмена
+                            </Button>
+                            <Button color={mainColor} onClick={() => void handleSubmit()} loading={submitting}>
+                                Отправить
+                            </Button>
+                        </Group>
+                    </Stack>
+                </Modal>
+            )}
+
             {isAdmin && adminFocusId != null && (
                 <AdminFeedbackModal
                     opened={adminModalOpen}
@@ -279,7 +312,7 @@ export default function FeedbackPage() {
                     }}
                 />
             )}
-        </LayoutCenter>
+        </>
     );
 }
 
