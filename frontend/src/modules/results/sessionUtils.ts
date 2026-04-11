@@ -18,13 +18,39 @@ export function isArchitectureStyleSession(session: SessionCompleteResponse) {
     return session.treeType === TreeType.ArchitectureStyle;
 }
 
+function getStyleByTreeType(treeType: number): string | null {
+    switch (treeType) {
+        case TreeType.MonolithPatterns:
+            return "Монолит";
+        case TreeType.ModularMonolithPatterns:
+            return "Модульный монолит";
+        case TreeType.MicroservicesPatterns:
+            return "Микросервисная архитектура";
+        default:
+            return null;
+    }
+}
+
+export function resolveSessionStyleName(session: SessionCompleteResponse) {
+    const styleFromResult = session.result?.architectureStyle?.trim();
+    if (styleFromResult) {
+        return styleFromResult;
+    }
+    return getStyleByTreeType(session.treeType);
+}
+
 export function sessionSummaryLabel(session: SessionCompleteResponse) {
     const isStyle = isArchitectureStyleSession(session);
-    if (isStyle && session.result?.architectureStyle) {
-        return `Стиль: ${session.result.architectureStyle}`;
+    const styleName = resolveSessionStyleName(session);
+
+    if (isStyle && styleName) {
+        return `Стиль: ${styleName}`;
     }
+
     if (session.result?.patterns?.length) {
-        return `Паттерны: ${session.result.patterns.slice(0, 3).join(", ")}${session.result.patterns.length > 3 ? "…" : ""}`;
+        const patternsLabel = `Паттерны: ${session.result.patterns.slice(0, 3).join(", ")}${session.result.patterns.length > 3 ? "…" : ""}`;
+        return styleName ? `Стиль: ${styleName} · ${patternsLabel}` : patternsLabel;
     }
+
     return isStyle ? "Сессия по стилям" : "Сессия по паттернам";
 }

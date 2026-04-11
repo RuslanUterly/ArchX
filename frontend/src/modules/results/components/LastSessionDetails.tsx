@@ -2,7 +2,11 @@ import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import type { SessionCompleteResponse } from "../../architectureDecision/api.ts";
-import { formatSessionDate, isArchitectureStyleSession } from "../sessionUtils.ts";
+import {
+    formatSessionDate,
+    isArchitectureStyleSession,
+    resolveSessionStyleName,
+} from "../sessionUtils.ts";
 
 interface LastSessionDetailsProps {
     session: SessionCompleteResponse;
@@ -28,7 +32,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export function LastSessionDetails({ session, sectionAction }: LastSessionDetailsProps) {
     const navigate = useNavigate();
     const isStyle = isArchitectureStyleSession(session);
-    const styleName = session.result?.architectureStyle?.trim() || null;
+    const styleName = resolveSessionStyleName(session);
     const patterns = session.result?.patterns?.filter(Boolean) ?? [];
     const description = session.result?.description?.trim() || null;
     const sessionTypeLabel = isStyle ? "Архитектурный стиль" : "Паттерны";
