@@ -14,13 +14,9 @@ import DecisionTreeEditorPage from "./modules/architectureDecisionEditor/pages/D
 import FeedbackPage from "./modules/feedback/pages/FeedbackPage.tsx";
 import StatisticsPage from "./modules/statistics/pages/StatisticsPage.tsx";
 import ProfilePage from "./modules/profile/pages/ProfilePage.tsx";
+import ResultsPage from "./modules/results/pages/ResultsPage.tsx";
 
 function App() {
-
-    //useEffect(() => {
-    //    initProfile();
-    //}, []);
-
     return (
         <div className="container-fill">
             <Header />
@@ -75,6 +71,14 @@ function App() {
                     }
                 />
                 <Route
+                    path="/results"
+                    element={
+                        <ProtectedRoute deniedRoles={["Admin"]} redirectTo="/">
+                            <ResultsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/profile"
                     element={
                         <ProtectedRoute deniedRoles={["Admin"]} redirectTo="/">
@@ -93,48 +97,6 @@ function App() {
                         <RegisterPage />
                     </LayoutCenter>
                 } />
-
-                {/*<Route*/}
-                {/*    path="/auth/hh/callback"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <LayoutCenter>*/}
-                {/*                <HhCallbackPage />*/}
-                {/*            </LayoutCenter>*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
-
-                {/*<Route*/}
-                {/*    path="/groups/:groupId"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <GroupPage />*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
-
-                {/*<Route*/}
-                {/*    path="/groups/create"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <LayoutCenter>*/}
-                {/*                <CreateGroupPage />*/}
-                {/*            </LayoutCenter>*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
-
-                {/*<Route*/}
-                {/*    path="/groups/:groupId/edit"*/}
-                {/*    element={*/}
-                {/*        <ProtectedRoute>*/}
-                {/*            <LayoutCenter>*/}
-                {/*                <EditGroupPage />*/}
-                {/*            </LayoutCenter>*/}
-                {/*        </ProtectedRoute>*/}
-                {/*    }*/}
-                {/*/>*/}
 
                 <Route path="*" element={
                     <LayoutCenter>
