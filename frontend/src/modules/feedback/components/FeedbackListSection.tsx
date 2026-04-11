@@ -1,9 +1,20 @@
-import { ActionIcon, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+    ActionIcon,
+    Badge,
+    Box,
+    Button,
+    Group,
+    Stack,
+    Text,
+    Title,
+    UnstyledButton,
+} from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useFeedbackStore } from "../store.ts";
 import AdminFeedbackListRow from "./AdminFeedbackListRow.tsx";
 import UserFeedbackCard from "./UserFeedbackCard.tsx";
+import classes from "./FeedbackListSection.module.css";
 
 export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const items = useFeedbackStore((s) => s.items);
@@ -12,12 +23,11 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const loadList = useFeedbackStore((s) => s.loadList);
     const openCreateModal = useFeedbackStore((s) => s.openCreateModal);
     const openAdminTicket = useFeedbackStore((s) => s.openAdminTicket);
-    const adminOpeningTicketId = useFeedbackStore((s) => s.adminOpeningTicketId);
     const adminTicketOpenError = useFeedbackStore((s) => s.adminTicketOpenError);
     const clearAdminTicketOpenError = useFeedbackStore((s) => s.clearAdminTicketOpenError);
 
     return (
-        <Paper p="lg" radius="md" withBorder>
+        <div>
             <Group justify="space-between" mb="md" wrap="wrap">
                 <Title order={4}>{isAdmin ? "Все обращения" : "Мои обращения"}</Title>
                 <Group gap="sm">
@@ -58,20 +68,42 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                     Пока нет обращений.
                 </Text>
             )}
-            <Stack gap="md">
-                {items.map((t) =>
-                    isAdmin ? (
-                        <AdminFeedbackListRow
-                            key={t.id}
-                            ticket={t}
-                            openLoading={adminOpeningTicketId === t.id}
-                            onOpen={() => void openAdminTicket(t.id)}
-                        />
-                    ) : (
-                        <UserFeedbackCard key={t.id} ticket={t} />
-                    ),
-                )}
-            </Stack>
-        </Paper>
+            {items.length > 0 && (
+                <Stack gap="sm">
+                    <Group justify="space-between" align="center">
+                        <Text size="sm" c="dimmed">
+                            Показано {items.length} из {items.length}
+                        </Text>
+                        <Badge variant="dot" color={mainColor}>
+                            История обращений
+                        </Badge>
+                    </Group>
+
+                    <Box className={classes.ticketsList}>
+                        {items.map((t) => (
+                            isAdmin ? (
+                                <UnstyledButton
+                                    key={t.id}
+                                    className={`${classes.ticketRow} ${classes.ticketRowClickable}`}
+                                    onClick={() => void openAdminTicket(t.id)}
+                                >
+                                    <Stack gap={6} className={classes.rowContent}>
+                                        <AdminFeedbackListRow
+                                            ticket={t}
+                                        />
+                                    </Stack>
+                                </UnstyledButton>
+                            ) : (
+                                <Box key={t.id} className={classes.ticketRow}>
+                                    <Stack gap={6} className={classes.rowContent}>
+                                        <UserFeedbackCard ticket={t} />
+                                    </Stack>
+                                </Box>
+                            )
+                        ))}
+                    </Box>
+                </Stack>
+            )}
+        </div>
     );
 }

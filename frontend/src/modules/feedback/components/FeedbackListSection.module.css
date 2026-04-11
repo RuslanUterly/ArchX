@@ -1,0 +1,37 @@
+.ticketsList {
+    border: 1px solid light-dark(#dee2e6, var(--mantine-color-dark-4));
+    border-radius: var(--mantine-radius-md);
+    overflow: hidden;
+    background: var(--mantine-color-body);
+}
+
+.ticketRow {
+    display: block;
+    width: 100%;
+    transition: background-color 120ms ease;
+}
+
+.ticketRowClickable {
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.ticketRowClickable:active {
+    background: var(--mantine-color-default-hover);
+}
+
+.ticketRow + .ticketRow {
+    border-top: 1px solid light-dark(#dee2e6, var(--mantine-color-dark-4));
+}
+
+.ticketRow:hover {
+    background: var(--mantine-color-default-hover);
+}
+
+.rowContent {
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
+}
