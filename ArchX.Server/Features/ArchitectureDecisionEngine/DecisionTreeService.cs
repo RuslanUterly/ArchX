@@ -61,6 +61,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
         {
             var patterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
                 context, s.Path, s.ResultNodeId);
+            var patternDetails = await DecisionTreeHelper.AggregatePatternDetailsAlongPathAsync(
+                context, s.Path, s.ResultNodeId);
             items.Add(new SessionCompleteResponse
             {
                 Id = s.Id,
@@ -73,6 +75,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
                 {
                     ArchitectureStyle = s.ResultNode?.ArchitectureStyle,
                     Patterns = patterns,
+                    PatternDetails = patternDetails,
                     Description = s.ResultNode?.Description,
                     Pros = s.ResultNode?.Pros,
                     Cons = s.ResultNode?.Cons,
@@ -105,11 +108,28 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             throw new NotFoundException("Сессия не найдена");
 
         List<string>? resultPatterns = null;
+        List<PatternDetailResponse>? resultPatternDetails = null;
         if (session.ResultNode != null && session.CompletedAt.HasValue)
+        {
             resultPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
                 context, session.Path, session.ResultNodeId);
+            resultPatternDetails = await DecisionTreeHelper.AggregatePatternDetailsAlongPathAsync(
+                context, session.Path, session.ResultNodeId);
+        }
         else if (session.ResultNode != null)
+        {
             resultPatterns = session.ResultNode.Patterns;
+            resultPatternDetails = session.ResultNode.Patterns
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Select(p => new PatternDetailResponse
+                {
+                    Name = p,
+                    Description = session.ResultNode.Description,
+                    Pros = session.ResultNode.Pros ?? new List<string>(),
+                    Cons = session.ResultNode.Cons ?? new List<string>(),
+                })
+                .ToList();
+        }
 
         return new SessionInProccessResponse
         {
@@ -126,6 +146,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             {
                 ArchitectureStyle = session.ResultNode.ArchitectureStyle,
                 Patterns = resultPatterns,
+                PatternDetails = resultPatternDetails,
                 Description = session.ResultNode.Description,
                 Pros = session.ResultNode.Pros,
                 Cons = session.ResultNode.Cons
@@ -318,6 +339,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 
         var aggregatedPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
             context, session.Path, session.ResultNodeId);
+        var aggregatedPatternDetails = await DecisionTreeHelper.AggregatePatternDetailsAlongPathAsync(
+            context, session.Path, session.ResultNodeId);
 
         // Формируем структуру ветки
         var branch = new SessionBranchResponse
@@ -331,6 +354,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             {
                 ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
                 Patterns = aggregatedPatterns,
+                PatternDetails = aggregatedPatternDetails,
                 Description = session.ResultNode?.Description,
                 Pros = session.ResultNode?.Pros ?? new List<string>(),
                 Cons = session.ResultNode?.Cons ?? new List<string>()
@@ -410,6 +434,8 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 
         var aggregatedPatterns = await DecisionTreeHelper.AggregatePatternsAlongPathAsync(
             context, session.Path, session.ResultNodeId);
+        var aggregatedPatternDetails = await DecisionTreeHelper.AggregatePatternDetailsAlongPathAsync(
+            context, session.Path, session.ResultNodeId);
 
         // Рекурсивно строим дерево
         var rootNode = await BuildQuestionTree(nodes, session, pathIds[0], 0);
@@ -425,6 +451,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             {
                 ArchitectureStyle = session.ResultNode?.ArchitectureStyle,
                 Patterns = aggregatedPatterns,
+                PatternDetails = aggregatedPatternDetails,
                 Description = session.ResultNode?.Description,
                 Pros = session.ResultNode?.Pros,
                 Cons = session.ResultNode?.Cons,
@@ -579,6 +606,61 @@ public static class DecisionTreeHelper
 
         if (resultNodeId.HasValue && nodes.TryGetValue(resultNodeId.Value, out var result))
             AddPatterns(result, ordered, seen);
+
+        return ordered;
+    }
+
+    public static async Task<List<PatternDetailResponse>> AggregatePatternDetailsAlongPathAsync(
+        ArchXContext context,
+        IReadOnlyList<int> pathNodeIds,
+        int? resultNodeId)
+    {
+        if (pathNodeIds.Count == 0 && !resultNodeId.HasValue)
+            return new List<PatternDetailResponse>();
+
+        var idSet = new HashSet<int>();
+        foreach (var id in pathNodeIds)
+            idSet.Add(id);
+        if (resultNodeId.HasValue)
+            idSet.Add(resultNodeId.Value);
+
+        var nodes = await context.Nodes
+            .AsNoTracking()
+            .Where(n => idSet.Contains(n.Id))
+            .ToDictionaryAsync(n => n.Id);
+
+        static void AddPatternDetails(
+            Node? node,
+            List<PatternDetailResponse> ordered,
+            HashSet<string> seen)
+        {
+            if (node == null) return;
+
+            foreach (var pattern in node.Patterns)
+            {
+                if (string.IsNullOrWhiteSpace(pattern)) continue;
+                if (!seen.Add(pattern)) continue;
+
+                ordered.Add(new PatternDetailResponse
+                {
+                    Name = pattern,
+                    Description = node.Description,
+                    Pros = node.Pros?.Count > 0 ? new List<string>(node.Pros) : new List<string>(),
+                    Cons = node.Cons?.Count > 0 ? new List<string>(node.Cons) : new List<string>(),
+                });
+            }
+        }
+
+        var ordered = new List<PatternDetailResponse>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in pathNodeIds)
+        {
+            if (nodes.TryGetValue(id, out var node))
+                AddPatternDetails(node, ordered, seen);
+        }
+
+        if (resultNodeId.HasValue && nodes.TryGetValue(resultNodeId.Value, out var result))
+            AddPatternDetails(result, ordered, seen);
 
         return ordered;
     }

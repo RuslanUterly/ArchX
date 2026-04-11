@@ -13,9 +13,17 @@ export type TreeTypeValue = (typeof TreeType)[keyof typeof TreeType];
 export interface ResultNodeResponse {
     architectureStyle?: string | null;
     patterns: string[];
+    patternDetails?: PatternDetailResponse[] | null;
     description?: string | null;
     pros: string[];
     cons: string[];
+}
+
+export interface PatternDetailResponse {
+    name: string;
+    description?: string | null;
+    pros?: string[] | null;
+    cons?: string[] | null;
 }
 
 export interface SessionResponse {
@@ -128,6 +136,7 @@ export const continueWithPatterns = async (
 export interface SessionCompleteResult {
     architectureStyle?: string | null;
     patterns?: string[] | null;
+    patternDetails?: PatternDetailResponse[] | null;
     description?: string | null;
     pros?: string[] | null;
     cons?: string[] | null;

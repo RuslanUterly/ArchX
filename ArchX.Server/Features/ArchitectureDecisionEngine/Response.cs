@@ -30,7 +30,16 @@ public abstract class NodeResponseBase
 {
     public string? ArchitectureStyle { get; set; }
     public List<string>? Patterns { get; set; }
+    public List<PatternDetailResponse>? PatternDetails { get; set; }
     public string? Description { get; set; }
+}
+
+public class PatternDetailResponse
+{
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public List<string>? Pros { get; set; }
+    public List<string>? Cons { get; set; }
 }
 
 public class ResultNodeInProccessResponse : NodeResponseBase

@@ -1,8 +1,10 @@
 import {
     Anchor,
+    Badge,
     Breadcrumbs,
     Button,
     Container,
+    Divider,
     Group,
     List,
     Loader,
@@ -22,9 +24,10 @@ import { mainColor } from "../../../shared/components/theme/colors.ts";
 import {
     getCombinedSessionTree,
     type CombinedSessionTreeResponse,
+    type PatternDetailResponse,
     type SessionCompleteResult,
 } from "../api.ts";
-import SessionTreeView from "../components/SessionTreeView.tsx";
+import SessionFlowGraph from "../components/SessionFlowGraph.tsx";
 
 function formatDate(s: string) {
     return new Date(s).toLocaleDateString("ru-RU", {
@@ -39,21 +42,10 @@ function formatDate(s: string) {
 function ResultBlock({ result }: { result: SessionCompleteResult | null }) {
     if (!result) return null;
     return (
-        <Stack gap="sm">
-            {result.architectureStyle && (
-                <Text fw={600}>
-                    Стиль архитектуры: {result.architectureStyle}
-                </Text>
-            )}
-            {result.patterns && result.patterns.length > 0 && (
-                <Text size="sm">
-                    Паттерны: {result.patterns.join(", ")}
-                </Text>
-            )}
+        <Stack gap="md">
+            {result.description && <Text size="sm">{result.description}</Text>}
             {result.description && (
-                <Text size="sm" c="dimmed">
-                    {result.description}
-                </Text>
+                <Divider variant="dashed" />
             )}
             {result.pros && result.pros.length > 0 && (
                 <Stack gap={4}>
@@ -88,6 +80,96 @@ function ResultBlock({ result }: { result: SessionCompleteResult | null }) {
                     </List>
                 </Stack>
             )}
+        </Stack>
+    );
+}
+
+function PatternDetailsBlock({ detail }: { detail: PatternDetailResponse }) {
+    const pros = detail.pros?.filter(Boolean) ?? [];
+    const cons = detail.cons?.filter(Boolean) ?? [];
+
+    return (
+        <Stack gap="sm">
+            {detail.description && <Text size="sm">{detail.description}</Text>}
+            {pros.length > 0 && (
+                <Stack gap={4}>
+                    <Text size="sm" fw={500}>
+                        Плюсы:
+                    </Text>
+                    <List spacing={4} size="sm">
+                        {pros.map((item) => (
+                            <List.Item
+                                key={item}
+                                icon={
+                                    <ThemeIcon color="green" size={20} radius="xl">
+                                        <IconCheck size={14} />
+                                    </ThemeIcon>
+                                }
+                            >
+                                {item}
+                            </List.Item>
+                        ))}
+                    </List>
+                </Stack>
+            )}
+            {cons.length > 0 && (
+                <Stack gap={4}>
+                    <Text size="sm" fw={500}>
+                        Минусы:
+                    </Text>
+                    <List spacing={4} size="sm">
+                        {cons.map((item) => (
+                            <List.Item key={item}>{item}</List.Item>
+                        ))}
+                    </List>
+                </Stack>
+            )}
+            {!detail.description && pros.length === 0 && cons.length === 0 && (
+                <Text size="sm" c="dimmed">
+                    Нет дополнительной информации по этому паттерну.
+                </Text>
+            )}
+        </Stack>
+    );
+}
+
+function PatternCards({ result }: { result: SessionCompleteResult | null }) {
+    const patternDetails = result?.patternDetails?.filter((p) => p?.name?.trim()) ?? [];
+    const fallbackPatterns = result?.patterns?.filter(Boolean) ?? [];
+    const fallbackDetail: PatternDetailResponse = {
+        name: "",
+        description: result?.description ?? null,
+        pros: result?.pros ?? [],
+        cons: result?.cons ?? [],
+    };
+
+    const items =
+        patternDetails.length > 0
+            ? patternDetails
+            : fallbackPatterns.map((name) => ({ ...fallbackDetail, name }));
+    if (items.length === 0) {
+        return (
+            <Text size="sm" c="dimmed">
+                Паттерны не определены.
+            </Text>
+        );
+    }
+
+    return (
+        <Stack gap="sm">
+            {items.map((pattern) => (
+                <Paper key={pattern.name} p="md" withBorder radius="md">
+                    <Stack gap="sm">
+                        <Group justify="space-between" align="center">
+                            <Text fw={600}>{pattern.name}</Text>
+                            <Badge variant="light" color="green">
+                                Паттерн
+                            </Badge>
+                        </Group>
+                        <PatternDetailsBlock detail={pattern} />
+                    </Stack>
+                </Paper>
+            ))}
         </Stack>
     );
 }
@@ -195,35 +277,57 @@ export default function SessionDetailPage() {
                     </div>
 
                     {styleTree && (
-                        <Paper p="lg" radius="md" withBorder>
+                        <div>
                             <Stack gap="md">
-                                <Text fw={600} size="lg">
-                                    Результат по стилям
-                                </Text>
-                                <ResultBlock result={styleTree.result} />
-                                <SessionTreeView
-                                    tree={styleTree.tree}
-                                    title="Путь по дереву стилей"
-                                    accentColor={mainColor}
-                                />
+                                <Group justify="space-between" align="center">
+                                    <Text fw={600} size="lg">
+                                        Результат по стилю
+                                    </Text>
+                                </Group>
+                                <Paper p="md" withBorder radius="md">
+                                    <Stack gap="sm">
+                                        <Group justify="space-between" align="center">
+                                            <Text fw={700} size="lg">
+                                                {styleTree.result?.architectureStyle ?? "—"}
+                                            </Text>
+                                            <Badge variant="light" color={mainColor}>
+                                                Стиль
+                                            </Badge>
+                                        </Group>
+                                        <ResultBlock result={styleTree.result} />
+                                    </Stack>
+                                </Paper>
+                                <Paper p="md" withBorder radius="md">
+                                    <Stack gap="sm">
+                                        <Text fw={600}>Ход выбора по дереву стилей</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Визуализация последовательности вопросов и ответов.
+                                        </Text>
+                                        <SessionFlowGraph tree={styleTree.tree} accentColor={mainColor} />
+                                    </Stack>
+                                </Paper>
                             </Stack>
-                        </Paper>
+                        </div>
                     )}
-
+                    <Divider label="" labelPosition="left" />
                     {patternsTree && (
-                        <Paper p="lg" radius="md" withBorder>
+                        <div>
                             <Stack gap="md">
                                 <Text fw={600} size="lg">
                                     Результат по паттернам
                                 </Text>
-                                <ResultBlock result={patternsTree.result} />
-                                <SessionTreeView
-                                    tree={patternsTree.tree}
-                                    title="Путь по дереву паттернов"
-                                    accentColor="#40a157"
-                                />
+                                <PatternCards result={patternsTree.result} />
+                                <Paper p="md" withBorder radius="md">
+                                    <Stack gap="sm">
+                                        <Text fw={600}>Ход выбора по дереву паттернов</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Визуализация последовательности вопросов и ответов.
+                                        </Text>
+                                        <SessionFlowGraph tree={patternsTree.tree} accentColor="#40a157" />
+                                    </Stack>
+                                </Paper>
                             </Stack>
-                        </Paper>
+                        </div>
                     )}
 
                     {!styleTree && !patternsTree && (
