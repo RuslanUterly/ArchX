@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import classes from "./Header.module.css";
 import { ThemeToggle } from "../../../shared/components/theme/ThemeToogle.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import type { SessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { useAuthStore } from "../../auth/store.ts";
 import {
     APP_NAV_ITEMS,
@@ -29,7 +30,11 @@ export const Header = () => {
 
     const isAuthRoute = location.pathname.startsWith("/auth/");
 
-    const activeNavId = resolveActiveNavId(location.pathname, visibleNavItems);
+    const sessionState = location.state as SessionRouteState | null;
+    const navSourceId = sessionState?.navContext?.id;
+    const activeNavId = location.pathname.startsWith("/sessions/")
+        ? navSourceId ?? "home"
+        : resolveActiveNavId(location.pathname, visibleNavItems);
     const tabValue = visibleNavItems.some((i) => i.id === activeNavId)
         ? activeNavId
         : visibleNavItems[0]?.id ?? "home";

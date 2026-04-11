@@ -13,8 +13,9 @@ import {
     UnstyledButton,
 } from "@mantine/core";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { RESULTS_PAGE_SIZE } from "../api.ts";
 import { LastSessionDetails } from "../components/LastSessionDetails.tsx";
 import {
@@ -27,6 +28,7 @@ import classes from "./ResultsPage.module.css";
 
 export default function ResultsPage() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const latestSession = useResultsStore((s) => s.latestSession);
     const sessions = useResultsStore((s) => s.sessions);
@@ -111,7 +113,11 @@ export default function ResultsPage() {
                                 {sessions.map((session) => (
                                     <UnstyledButton
                                         key={session.id}
-                                        onClick={() => navigate(`/sessions/${session.id}`)}
+                                        onClick={() =>
+                                            navigate(`/sessions/${session.id}`, {
+                                                state: buildSessionRouteState(location.pathname),
+                                            })
+                                        }
                                         className={classes.sessionRow}
                                     >
                                         <Stack gap={6} className={classes.rowContent}>

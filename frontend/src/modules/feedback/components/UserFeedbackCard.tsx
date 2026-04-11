@@ -1,11 +1,14 @@
 import { Anchor, Badge, Group, Paper, Stack, Text } from "@mantine/core";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import type { FeedbackTicketDto } from "../api.ts";
 import { categoryLabel, statusLabel } from "../feedbackLabels.ts";
 import { formatDate } from "../utils.ts";
 
 export default function UserFeedbackCard({ ticket }: { ticket: FeedbackTicketDto }) {
+    const location = useLocation();
+
     return (
         <Stack gap="xs">
             <Group gap="xs" wrap="wrap">
@@ -18,9 +21,14 @@ export default function UserFeedbackCard({ ticket }: { ticket: FeedbackTicketDto
                 </Text>
             </Group>
             {ticket.sessionId != null && ticket.sessionId > 0 && (
-                <Text size="sm">
+                <Text size="sm" c="dimmed">
                     Сессия:{" "}
-                    <Anchor component={Link} to={`/sessions/${ticket.sessionId}`}>
+                    <Anchor
+                        component={Link}
+                        to={`/sessions/${ticket.sessionId}`}
+                        state={buildSessionRouteState(location.pathname)}
+                        c="dimmed"
+                    >
                         #{ticket.sessionId}
                         {ticket.sessionProjectName ? ` · ${ticket.sessionProjectName}` : ""}
                     </Anchor>

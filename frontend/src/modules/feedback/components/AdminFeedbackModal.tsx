@@ -10,8 +10,9 @@ import {
     Textarea,
 } from "@mantine/core";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import {
     FeedbackStatus,
     type FeedbackStatusValue,
@@ -31,6 +32,7 @@ export default function AdminFeedbackModal({
     ticket: FeedbackTicketDto;
     onSaved: () => Promise<void>;
 }) {
+    const location = useLocation();
     const [ticket, setTicket] = useState(initialTicket);
     const [status, setStatus] = useState(String(initialTicket.status));
     const [responseText, setResponseText] = useState(initialTicket.adminReply?.message ?? "");
@@ -76,9 +78,14 @@ export default function AdminFeedbackModal({
                     </Text>
                 )}
                 {ticket.sessionId != null && ticket.sessionId > 0 && (
-                    <Text size="sm">
+                    <Text size="sm" c="dimmed">
                         Сессия:{" "}
-                        <Anchor component={Link} to={`/sessions/${ticket.sessionId}`}>
+                        <Anchor
+                            component={Link}
+                            to={`/sessions/${ticket.sessionId}`}
+                            state={buildSessionRouteState(location.pathname)}
+                            c="dimmed"
+                        >
                             #{ticket.sessionId}
                             {ticket.sessionProjectName ? ` · ${ticket.sessionProjectName}` : ""}
                         </Anchor>

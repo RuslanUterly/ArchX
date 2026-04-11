@@ -1,8 +1,23 @@
-import { Button, Container, List, Loader, Paper, Space, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import {
+    Anchor,
+    Breadcrumbs,
+    Button,
+    Container,
+    Group,
+    List,
+    Loader,
+    Paper,
+    Space,
+    Stack,
+    Text,
+    ThemeIcon,
+    Title,
+} from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
+import type { SessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import {
     getCombinedSessionTree,
@@ -80,9 +95,21 @@ function ResultBlock({ result }: { result: SessionCompleteResult | null }) {
 export default function SessionDetailPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const [data, setData] = useState<CombinedSessionTreeResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const sessionState = location.state as SessionRouteState | null;
+    const backTarget = sessionState?.navContext ?? { label: "Главная", path: "/", id: "home" };
+
+    const handleGoBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+            return;
+        }
+        navigate(backTarget.path);
+    };
 
     useEffect(() => {
         const id = sessionId ? parseInt(sessionId, 10) : NaN;
@@ -118,8 +145,8 @@ export default function SessionDetailPage() {
                 <Container size="md">
                     <Paper p="lg" withBorder>
                         <Text c="red">{error ?? "Сессия не найдена"}</Text>
-                        <Button mt="md" variant="subtle" size="sm" onClick={() => navigate("/")}>
-                            На главную
+                        <Button mt="md" variant="subtle" size="sm" onClick={handleGoBack}>
+                            Назад
                         </Button>
                     </Paper>
                 </Container>
@@ -137,17 +164,28 @@ export default function SessionDetailPage() {
     return (
         <>
             <Container size="md" style={{ width: "100%" }}>
-                <Space h="xl" />
+                <Space h="md" />
                 <Stack gap="lg">
                     <div>
-                        <Button
-                            variant="subtle"
-                            size="sm"
-                            color={mainColor}
-                            onClick={() => navigate("/")}
-                        >
-                            ← На главную
-                        </Button>
+                        <Group justify="space-between" align="center" wrap="wrap">
+                            <Breadcrumbs>
+                                <Anchor
+                                    component="button"
+                                    type="button"
+                                    c="dimmed"
+                                    underline="never"
+                                    onClick={() => navigate(backTarget.path)}
+                                >
+                                    {backTarget.label}
+                                </Anchor>
+                                <Text size="sm" c="dimmed">
+                                    #{sessionId}
+                                </Text>
+                            </Breadcrumbs>
+                            <Button variant="subtle" size="sm" color={mainColor} onClick={handleGoBack}>
+                                Назад
+                            </Button>
+                        </Group>
                         <Title order={2} c={mainColor} mt="xs">
                             Сессия: {projectName}
                         </Title>

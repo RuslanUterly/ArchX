@@ -1,6 +1,7 @@
 import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import type { SessionCompleteResponse } from "../../architectureDecision/api.ts";
 import {
     formatSessionDate,
@@ -29,8 +30,12 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     );
 }
 
-export function LastSessionDetails({ session, sectionAction }: LastSessionDetailsProps) {
+export function LastSessionDetails({
+    session,
+    sectionAction,
+}: LastSessionDetailsProps) {
     const navigate = useNavigate();
+    const location = useLocation();
     const isStyle = isArchitectureStyleSession(session);
     const styleName = resolveSessionStyleName(session);
     const patterns = session.result?.patterns?.filter(Boolean) ?? [];
@@ -59,7 +64,11 @@ export function LastSessionDetails({ session, sectionAction }: LastSessionDetail
                             size="xs"
                             variant="light"
                             color={mainColor}
-                            onClick={() => navigate(`/sessions/${session.id}`)}
+                            onClick={() =>
+                                navigate(`/sessions/${session.id}`, {
+                                    state: buildSessionRouteState(location.pathname),
+                                })
+                            }
                         >
                             Подробнее
                         </Button>
