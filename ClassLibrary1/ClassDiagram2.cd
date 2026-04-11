@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SessionResponseBase" Collapsed="true">
+    <Position X="1.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SessionInProccessResponse" Collapsed="true">
+    <Position X="0.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SessionCompleteResponse" Collapsed="true">
+    <Position X="2.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACBAAAAAAAAAAAAEAAAQAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.NodeResponseBase" Collapsed="true">
+    <Position X="1.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAgAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.ResultNodeInProccessResponse" Collapsed="true">
+    <Position X="2.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAIAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.ResultNodeCompletedResponse" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAIAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.NodeResponse" Collapsed="true">
+    <Position X="5.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAACEAAgAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.LinkResponse" Collapsed="true">
+    <Position X="7" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAEAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.VisualizationResponse" Collapsed="true">
+    <Position X="8.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAggAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SessionBranchResponse" Collapsed="true">
+    <Position X="12.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIACBAAAAQIAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.PathItemResponse" Collapsed="true">
+    <Position X="7" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAACBAAAAEAQAABgAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SessionTreeResponse" Collapsed="true">
+    <Position X="5.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAACBAAAAQIAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.QuestionNodeResponse" Collapsed="true">
+    <Position X="8.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAACAAAAAEAAAAAgAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.CombinedSessionTreeResponse" Collapsed="true">
+    <Position X="8.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Response.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.StartSessionRequest" Collapsed="true">
+    <Position X="7" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Request.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.AnswerRequest" Collapsed="true">
+    <Position X="5.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\Request.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.DecisionTreeController" Collapsed="true">
+    <Position X="10.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAQAACAAAAAQAAQAAAAAAAAAYACAAAAIiAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\DecisionTreeController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.ArchitectureStyleTreeSeed" Collapsed="true">
+    <Position X="7" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\SeedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.MonolithPatternsTreeSeed" Collapsed="true">
+    <Position X="12.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\SeedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.ModularMonolithPatternsTreeSeed" Collapsed="true">
+    <Position X="10.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\SeedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.MicroservicesPatternsTreeSeed" Collapsed="true">
+    <Position X="8.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\SeedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.SeedData" Collapsed="true">
+    <Position X="10.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\SeedData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.DecisionTreeService" Collapsed="true">
+    <Position X="5.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAADAAAAAAAQAQAQAAQAAAAAAAAAJAQAAAAAgEAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\DecisionTreeService.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ArchX.Server.Features.ArchitectureDecision.DecisionTreeHelper" Collapsed="true">
+    <Position X="12.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAAAAAAAAAAAAAAAAQAAAAAAYAAAA=</HashCode>
+      <FileName>Features\ArchitectureDecisionEngine\DecisionTreeService.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9.75" />
+</ClassDiagram>

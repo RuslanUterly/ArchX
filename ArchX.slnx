@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="ArchX.AppHost/ArchX.AppHost.csproj" />
   <Project Path="ArchX.Server/ArchX.Server.csproj" />
+  <Project Path="ClassLibrary1/ClassLibrary1.csproj" Id="931e5f75-bc51-4d79-ba26-988326f484d6" />
   <Project Path="frontend/frontend.esproj">
     <Build />
     <Deploy />

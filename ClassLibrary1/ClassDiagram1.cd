@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ClassLibrary1.Entities.Node">
+    <Position X="11.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAACAAAgAAgAgAAgQIAAAAAAAQACAQAAQIAAAAA=</HashCode>
+      <FileName>Entities\DecisionTree.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Link" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.Link">
+    <Position X="9.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAACAAIAAAAAAQAAAAAAAAAAAAgAAAAEAAAg=</HashCode>
+      <FileName>Entities\DecisionTree.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Node" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.Session">
+    <Position X="7.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAHAAAAAAAAAQIACBBAQAoAAAgAAAEAQAQAAEEAAEA=</HashCode>
+      <FileName>Entities\DecisionTree.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Node" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.FeedbackAdminReply">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACQAAAAAAACAACACAAAAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Entities\FeedbackAdminReply.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.FeedbackTicket">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAADAAAEAAABCQAAAKAAAAgIAAAAAAAAAAAAIAAQCAA=</HashCode>
+      <FileName>Entities\FeedbackTicket.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="FeedbackAdminReply" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.Roles">
+    <Position X="1.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Entities\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ClassLibrary1.Entities.User">
+    <Position X="5.25" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAQAAACAAAAAAAgAACAAAAAAAAAEAAEA=</HashCode>
+      <FileName>Entities\User.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Roles" />
+      <Property Name="Session" />
+      <Property Name="FeedbackTicket" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9.75" />
+</ClassDiagram>

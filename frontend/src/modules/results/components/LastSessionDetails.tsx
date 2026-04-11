@@ -35,7 +35,7 @@ export function LastSessionDetails({ session, sectionAction }: LastSessionDetail
     const styleName = resolveSessionStyleName(session);
     const patterns = session.result?.patterns?.filter(Boolean) ?? [];
     const description = session.result?.description?.trim() || null;
-    const sessionTypeLabel = isStyle ? "Архитектурный стиль" : "Паттерны";
+    const sessionTypeLabel = isStyle ? "Архитектурный стиль" : "Архитектурный стиль и паттерны";
 
     return (
         <Paper p="md" radius="md" withBorder>
