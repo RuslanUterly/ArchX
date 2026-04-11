@@ -18,6 +18,10 @@ export function isArchitectureStyleSession(session: SessionCompleteResponse) {
     return session.treeType === TreeType.ArchitectureStyle;
 }
 
+export function getSessionTypeLabel(session: SessionCompleteResponse) {
+    return isArchitectureStyleSession(session) ? "Архитектурный стиль" : "Паттерны";
+}
+
 function getStyleByTreeType(treeType: number): string | null {
     switch (treeType) {
         case TreeType.MonolithPatterns:
