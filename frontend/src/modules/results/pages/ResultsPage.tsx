@@ -118,13 +118,15 @@ export default function ResultsPage() {
                                             <Group justify="space-between" align="flex-start">
                                                 <Group gap="xs">
                                                     <Text fw={600}>{session.projectName}</Text>
-                                                    <Badge variant="light" color={mainColor}>
-                                                        {getSessionTypeLabel(session)}
-                                                    </Badge>
                                                 </Group>
-                                                <Text size="xs" c="dimmed">
-                                                    #{session.id}
-                                                </Text>
+                                                <Group>
+                                                    <Badge variant="light" color={mainColor}>
+                                                            {getSessionTypeLabel(session)}
+                                                    </Badge>
+                                                    <Text size="xs" c="dimmed">
+                                                        #{session.id}
+                                                    </Text>
+                                                </Group>
                                             </Group>
                                             <Text size="sm" c="dimmed">
                                                 {sessionSummaryLabel(session)}

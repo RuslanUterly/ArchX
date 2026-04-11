@@ -19,7 +19,7 @@ export function isArchitectureStyleSession(session: SessionCompleteResponse) {
 }
 
 export function getSessionTypeLabel(session: SessionCompleteResponse) {
-    return isArchitectureStyleSession(session) ? "Архитектурный стиль" : "Паттерны";
+    return isArchitectureStyleSession(session) ? "Архитектурный стиль" : "Архитектурный стиль и паттерны";
 }
 
 function getStyleByTreeType(treeType: number): string | null {
