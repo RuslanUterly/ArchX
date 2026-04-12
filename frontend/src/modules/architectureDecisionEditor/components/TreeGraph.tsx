@@ -10,6 +10,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { useDecisionTreeEditorStore } from "../store.ts";
 import dagre from 'dagre';
+import { useMediaQuery } from "@mantine/hooks";
 
 interface TreeGraphProps {
     hierarchy: NodeHierarchy[];
@@ -18,15 +19,17 @@ interface TreeGraphProps {
 const RESULT_ACCENT_COLOR = "#1976d2";
 const QUESTION_BORDER_COLOR = "var(--app-main-color)";
 
-const buildGraph = (hierarchy: NodeHierarchy[]) => {
+const buildGraph = (hierarchy: NodeHierarchy[], isMobile: boolean) => {
+    const nodeWidth = isMobile ? 170 : 200;
+    const nodeHeight = isMobile ? 72 : 80;
     const dagreGraph = new dagre.graphlib.Graph({ multigraph: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ 
         rankdir: 'TB',
-        nodesep: 100,
-        ranksep: 150,
-        marginx: 50,
-        marginy: 50
+        nodesep: isMobile ? 90 : 100,
+        ranksep: isMobile ? 100 : 100,
+        marginx: isMobile ? 24 : 50,
+        marginy: isMobile ? 24 : 50
     });
 
     const edges: Edge[] = [];
@@ -47,8 +50,8 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
 
         dagreGraph.setNode(String(id), { 
             label,
-            width: 200,
-            height: 80,
+            width: nodeWidth,
+            height: nodeHeight,
         });
 
         if (parentId != null && link != null) {
@@ -181,20 +184,21 @@ const findNodeById = (
 export default function TreeGraph(props: TreeGraphProps) {
     const { hierarchy } = props;
     const selectNode = useDecisionTreeEditorStore((s) => s.selectNode);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const { nodes, edges } = useMemo(() => {
         if (!hierarchy || hierarchy.length === 0) {
             return { nodes: [], edges: [] };
         }
-        return buildGraph(hierarchy);
-    }, [hierarchy]);
+        return buildGraph(hierarchy, Boolean(isMobile));
+    }, [hierarchy, isMobile]);
 
     // Если нет узлов, показываем заглушку
     if (nodes.length === 0) {
         return (
             <div style={{ 
                 width: "100%", 
-                height: 600, 
+                height: isMobile ? 420 : 600, 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
@@ -211,7 +215,7 @@ export default function TreeGraph(props: TreeGraphProps) {
             className="tree-graph"
             style={{
                 width: "100%",
-                height: 600,
+                height: isMobile ? 420 : 600,
                 background: "var(--mantine-color-body)",
             }}
         >
@@ -233,17 +237,19 @@ export default function TreeGraph(props: TreeGraphProps) {
             >
                 <Background color="var(--mantine-color-dimmed)" gap={16} />
                 <Controls />
-                <MiniMap 
-                    nodeColor={(node: any) => {
-                        if (node.data?.type === "Result") {
-                            return RESULT_ACCENT_COLOR;
-                        }
-                        return "var(--mantine-color-body)";
-                    }}
-                    style={{
-                        backgroundColor: "var(--mantine-color-body)",
-                    }}
-                />
+                {!isMobile && (
+                    <MiniMap 
+                        nodeColor={(node: any) => {
+                            if (node.data?.type === "Result") {
+                                return RESULT_ACCENT_COLOR;
+                            }
+                            return "var(--mantine-color-body)";
+                        }}
+                        style={{
+                            backgroundColor: "var(--mantine-color-body)",
+                        }}
+                    />
+                )}
             </ReactFlow>
         </div>
     );

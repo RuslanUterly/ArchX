@@ -114,6 +114,7 @@ export default function DecisionTreeEditorPage() {
                     )}
                 </Paper>
             </Stack>
+            <Space h="xl" />
         </Container>
     );
 }

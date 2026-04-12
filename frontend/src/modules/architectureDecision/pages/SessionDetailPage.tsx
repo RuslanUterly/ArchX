@@ -18,6 +18,7 @@ import {
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
 import type { SessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { mainColor, successColor } from "../../../shared/components/theme/colors.ts";
@@ -199,6 +200,7 @@ export default function SessionDetailPage() {
     const [data, setData] = useState<CombinedSessionTreeResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const sessionState = location.state as SessionRouteState | null;
     const backTarget = sessionState?.navContext ?? { label: "Главная", path: "/", id: "home" };
@@ -282,11 +284,11 @@ export default function SessionDetailPage() {
                                     #{sessionId}
                                 </Text>
                             </Breadcrumbs>
-                            <Button variant="subtle" size="sm" color={mainColor} onClick={handleGoBack}>
+                            <Button variant="light" size="sm" color={mainColor} onClick={handleGoBack}>
                                 Назад
                             </Button>
                         </Group>
-                        <Title order={2} c={mainColor} mt="xs">
+                        <Title order={isMobile ? 3 : 2} c={mainColor} mt="xs">
                             Сессия: {projectName}
                         </Title>
                         <Text size="sm" c="dimmed">
@@ -304,7 +306,7 @@ export default function SessionDetailPage() {
                                 </Group>
                                 <Paper p="md" withBorder radius="md">
                                     <Stack gap="sm">
-                                        <Group justify="space-between" align="center">
+                                        <Group justify="space-between" align="center" wrap="wrap">
                                             <Text fw={700} size="lg">
                                                 {styleTree.result?.architectureStyle ?? "—"}
                                             </Text>

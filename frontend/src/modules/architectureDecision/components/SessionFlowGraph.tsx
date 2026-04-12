@@ -10,6 +10,7 @@ import dagre from "dagre";
 import "reactflow/dist/style.css";
 import type { QuestionNodeResponse } from "../api.ts";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { useMediaQuery } from "@mantine/hooks";
 
 interface SessionFlowGraphProps {
     tree: QuestionNodeResponse;
@@ -38,7 +39,10 @@ function flattenTree(tree: QuestionNodeResponse): LinearNode[] {
     return result;
 }
 
-function buildGraph(tree: QuestionNodeResponse, accentColor: string) {
+function buildGraph(
+    tree: QuestionNodeResponse,
+    accentColor: string
+) {
     const chain = flattenTree(tree);
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -112,10 +116,14 @@ function buildGraph(tree: QuestionNodeResponse, accentColor: string) {
 }
 
 export default function SessionFlowGraph({ tree, accentColor = mainColor }: SessionFlowGraphProps) {
-    const { nodes, edges } = useMemo(() => buildGraph(tree, accentColor), [tree, accentColor]);
+    const isMobile = useMediaQuery("(max-width: 767px)");
+    const { nodes, edges } = useMemo(
+        () => buildGraph(tree, accentColor),
+        [tree, accentColor],
+    );
 
     return (
-        <div className="tree-graph" style={{ width: "100%", height: 520 }}>
+        <div className="tree-graph" style={{ width: "100%", height: isMobile ? 420 : 520 }}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -129,11 +137,13 @@ export default function SessionFlowGraph({ tree, accentColor = mainColor }: Sess
             >
                 <Background gap={20} size={1} />
                 <Controls showInteractive={false} />
-                <MiniMap
-                    pannable
-                    zoomable
-                    style={{ backgroundColor: "var(--mantine-color-body)" }}
-                />
+                {!isMobile && (
+                    <MiniMap
+                        pannable
+                        zoomable
+                        style={{ backgroundColor: "var(--mantine-color-body)" }}
+                    />
+                )}
             </ReactFlow>
         </div>
     );
