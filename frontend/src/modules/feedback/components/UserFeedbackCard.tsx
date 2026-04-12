@@ -15,7 +15,7 @@ export default function UserFeedbackCard({ ticket }: { ticket: FeedbackTicketDto
                 <Badge color={mainColor} variant="light">
                     {categoryLabel[ticket.category]}
                 </Badge>
-                <Badge variant="outline">{statusLabel[ticket.status]}</Badge>
+                <Badge color={mainColor} variant="outline">{statusLabel[ticket.status]}</Badge>
                 <Text size="xs" c="dimmed">
                     {formatDate(ticket.createdAt)}
                 </Text>

@@ -15,6 +15,9 @@ interface TreeGraphProps {
     hierarchy: NodeHierarchy[];
 }
 
+const RESULT_ACCENT_COLOR = "#1976d2";
+const QUESTION_BORDER_COLOR = "var(--mantine-color-default-border)";
+
 const buildGraph = (hierarchy: NodeHierarchy[]) => {
     const dagreGraph = new dagre.graphlib.Graph({ multigraph: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -65,7 +68,14 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
                     target: String(id),
                     label: link.condition,
                     animated: false,
-                    style: { strokeWidth: 1.5 },
+                    style: {
+                        strokeWidth: 1.5,
+                        stroke: "var(--mantine-color-dimmed)",
+                    },
+                    labelStyle: {
+                        fill: "var(--mantine-color-dimmed)",
+                        fontSize: 12,
+                    },
                 });
             }
         }
@@ -121,15 +131,20 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
             },
             position: { x, y },
             style: {
-                background: isResult ? '#e3f2fd' : '#ffffff',
-                border: isResult ? '2px solid #1976d2' : '1px solid #ccc',
+                background: isResult
+                    ? "color-mix(in srgb, var(--mantine-color-body) 78%, #1976d2)"
+                    : "var(--mantine-color-body)",
+                color: "var(--mantine-color-text)",
+                border: isResult
+                    ? `2px solid ${RESULT_ACCENT_COLOR}`
+                    : `1px solid ${QUESTION_BORDER_COLOR}`,
                 borderRadius: '8px',
                 padding: '10px',
                 fontSize: '12px',
                 fontWeight: isResult ? 500 : 400,
                 width: node.width,
                 minHeight: node.height,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                 transition: 'all 0.2s ease',
                 cursor: 'pointer',
                 display: 'flex',
@@ -183,16 +198,22 @@ export default function TreeGraph(props: TreeGraphProps) {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                background: '#f5f5f5',
+                background: "var(--mantine-color-body)",
                 borderRadius: '8px'
             }}>
-                <p style={{ color: '#666' }}>Нет данных для отображения</p>
+                <p style={{ color: "var(--mantine-color-dimmed)" }}>Нет данных для отображения</p>
             </div>
         );
     }
 
     return (
-        <div style={{ width: "100%", height: 600, background: '#fafafa' }}>
+        <div
+            style={{
+                width: "100%",
+                height: 600,
+                background: "var(--mantine-color-body)",
+            }}
+        >
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -209,14 +230,17 @@ export default function TreeGraph(props: TreeGraphProps) {
                 nodesConnectable={false}
                 elementsSelectable={true}
             >
-                <Background color="#aaa" gap={16} />
+                <Background color="var(--mantine-color-dimmed)" gap={16} />
                 <Controls />
                 <MiniMap 
                     nodeColor={(node: any) => {
-                        return node.data?.type === "Result" ? '#1976d2' : '#fff';
+                        if (node.data?.type === "Result") {
+                            return RESULT_ACCENT_COLOR;
+                        }
+                        return "var(--mantine-color-body)";
                     }}
                     style={{
-                        backgroundColor: '#f5f5f5',
+                        backgroundColor: "var(--mantine-color-body)",
                     }}
                 />
             </ReactFlow>

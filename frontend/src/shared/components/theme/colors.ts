@@ -1,4 +1,4 @@
-export const mainColor = "#4056a1";
+export const mainColor = "var(--app-main-color)";
 export const hhColor = "#a14040";
 export const cancelColor = "#a14040";
 export const successColor = "#40a157";

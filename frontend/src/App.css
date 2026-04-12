@@ -2,6 +2,14 @@ html {
     scrollbar-gutter: stable;
 }
 
+:root {
+    --app-main-color: #4056a1;
+}
+
+[data-mantine-color-scheme="dark"] {
+    --app-main-color: #6f8cff;
+}
+
 .container-fill {
     display: flex;
     flex-direction: column;

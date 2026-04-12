@@ -70,7 +70,7 @@ export default function AdminFeedbackModal({
                     <Badge color={mainColor} variant="light">
                         {categoryLabel[ticket.category]}
                     </Badge>
-                    <Badge variant="outline">{statusLabel[ticket.status]}</Badge>
+                    <Badge color={mainColor} variant="outline">{statusLabel[ticket.status]}</Badge>
                 </Group>
                 {ticket.userEmail && (
                     <Text size="sm" c="dimmed">
