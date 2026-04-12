@@ -80,26 +80,24 @@ export default function HomePage() {
                                 </Stack>
                             ) : isAuthenticated ? (
                                 <>
-                                    <Text size="sm" c="dimmed">
-                                        Чтобы начать, нажмите кнопку →
-                                    </Text>
-                                    <Button color={mainColor} onClick={() => navigate("/decision-tree")}>
-                                        Начать опрос
-                                    </Button>
+                                    <Group align="center" justify="space-between" w="100%">
+                                        <Text size="sm" c="dimmed">
+                                            Чтобы начать, нажмите кнопку →
+                                        </Text>
+                                        <Button 
+                                            color={mainColor} 
+                                            onClick={() => navigate("/decision-tree")}
+                                        >
+                                            Начать опрос
+                                        </Button>
+                                    </Group>
                                 </>
                             ) : (
                                 <>
-                                    <Text size="sm" c="dimmed">
-                                        Чтобы начать, нужно войти в аккаунт.
-                                    </Text>
-                                    <Group>
-                                        <Button
-                                            color={mainColor}
-                                            variant="outline"
-                                            onClick={() => navigate("/auth/register")}
-                                        >
-                                            Регистрация
-                                        </Button>
+                                    <Group align="center" justify="space-between" w="100%">
+                                        <Text size="sm" c="dimmed">
+                                            Чтобы начать, нужно войти в аккаунт.
+                                        </Text>
                                         <Button
                                             color={mainColor}
                                             onClick={() => navigate("/auth/login")}
