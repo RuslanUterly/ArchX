@@ -371,16 +371,29 @@ public static class QueryableQueryExtensions
                         value,
                         formats,
                         CultureInfo.GetCultureInfo("ru-RU"),
-                        DateTimeStyles.AssumeLocal | DateTimeStyles.AllowWhiteSpaces,
+                        DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
                         out var dateExact))
                 {
-                    return dateExact;
+                    return EnsureUtcDateTime(dateExact);
                 }
 
-                if (DateTime.TryParse(value, CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.AssumeLocal, out var dateRu))
-                    return dateRu;
-                if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateInvariant))
-                    return dateInvariant;
+                if (DateTime.TryParse(
+                        value,
+                        CultureInfo.GetCultureInfo("ru-RU"),
+                        DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                        out var dateRu))
+                {
+                    return EnsureUtcDateTime(dateRu);
+                }
+
+                if (DateTime.TryParse(
+                        value,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                        out var dateInvariant))
+                {
+                    return EnsureUtcDateTime(dateInvariant);
+                }
 
                 throw new BadRequestException($"Некорректная дата '{value}' для поля '{fieldPath}'.");
             }
@@ -403,5 +416,15 @@ public static class QueryableQueryExtensions
         {
             throw new BadRequestException($"Некорректное значение '{value}' для поля '{fieldPath}'.");
         }
+    }
+
+    private static DateTime EnsureUtcDateTime(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+        };
     }
 }

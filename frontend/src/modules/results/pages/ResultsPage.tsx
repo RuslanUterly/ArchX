@@ -16,7 +16,10 @@ import {
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import QueryFiltersModal, { type QueryFilterFieldOption } from "../../../shared/components/QueryFiltersModal.tsx";
+import QueryFiltersModal, {
+    formatFilterDisplayValue,
+    type QueryFilterFieldOption,
+} from "../../../shared/components/QueryFiltersModal.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { RESULTS_PAGE_SIZE } from "../api.ts";
@@ -178,7 +181,8 @@ export default function ResultsPage() {
                                     onClick={() => void removeFilter(field)}
                                     title="Нажмите, чтобы удалить фильтр"
                                 >
-                                    {(RESULTS_FILTER_FIELD_LABELS[field] ?? field)}: {value}
+                                    {(RESULTS_FILTER_FIELD_LABELS[field] ?? field)}:{" "}
+                                    {formatFilterDisplayValue(RESULTS_FILTER_FIELD_OPTIONS, field, value)}
                                 </Badge>
                             ))}
                         </Group>

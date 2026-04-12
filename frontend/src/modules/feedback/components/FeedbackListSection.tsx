@@ -12,7 +12,10 @@ import {
 } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import QueryFiltersModal, { type QueryFilterFieldOption } from "../../../shared/components/QueryFiltersModal.tsx";
+import QueryFiltersModal, {
+    formatFilterDisplayValue,
+    type QueryFilterFieldOption,
+} from "../../../shared/components/QueryFiltersModal.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useFeedbackStore } from "../store.ts";
 import AdminFeedbackListRow from "./AdminFeedbackListRow.tsx";
@@ -165,7 +168,8 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                             onClick={() => void removeFilter(field)}
                             title="Нажмите, чтобы удалить фильтр"
                         >
-                            {(FEEDBACK_FILTER_FIELD_LABELS[field] ?? field)}: {value}
+                            {(FEEDBACK_FILTER_FIELD_LABELS[field] ?? field)}:{" "}
+                            {formatFilterDisplayValue(FEEDBACK_FILTER_FIELD_OPTIONS, field, value)}
                         </Badge>
                     ))}
                 </Group>

@@ -1,5 +1,5 @@
-import { Button, Group, Modal, Select, Stack, Text, TextInput } from "@mantine/core";
-import { useEffect, useMemo, useState } from "react";
+import { Box, Button, Group, Modal, Select, Stack, TextInput } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { mainColor } from "./theme/colors.ts";
 
 type FilterFieldType = "string" | "number" | "date" | "enum";
@@ -30,6 +30,156 @@ interface QueryFiltersModalProps {
     onSave: (filters: Record<string, string>) => Promise<void> | void;
 }
 
+interface FilterRow {
+    id: string;
+    field: string | null;
+    operator: string | null;
+    value: string;
+}
+
+const createRowId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const getOperatorOptions = (fieldType: FilterFieldType): FilterExpressionOption[] => {
+    if (fieldType === "string") {
+        return [
+            { value: "contains", label: "Содержит" },
+            { value: "not_contains", label: "Не содержит" },
+            { value: "starts_with", label: "Начинается с" },
+            { value: "ends_with", label: "Заканчивается на" },
+            { value: "equals", label: "Равно" },
+            { value: "not_equals", label: "Не равно" },
+        ];
+    }
+
+    if (fieldType === "number" || fieldType === "date") {
+        return [
+            { value: "equals", label: "Равно" },
+            { value: "not_equals", label: "Не равно" },
+            { value: "greater", label: "Больше" },
+            { value: "greater_or_equal", label: "Больше или равно" },
+            { value: "less", label: "Меньше" },
+            { value: "less_or_equal", label: "Меньше или равно" },
+        ];
+    }
+
+    return [
+        { value: "contains", label: "Содержит" },
+        { value: "not_contains", label: "Не содержит" },
+    ];
+};
+
+const buildExpression = (
+    fieldType: FilterFieldType,
+    operator: string | null,
+    rawValue: string,
+): string | null => {
+    if (!operator) return null;
+
+    const value = rawValue.trim();
+    if (!value) return null;
+
+    if (fieldType === "string") {
+        switch (operator) {
+            case "contains":
+                return value;
+            case "not_contains":
+                return `!=%${value}%`;
+            case "starts_with":
+                return `${value}%`;
+            case "ends_with":
+                return `%${value}`;
+            case "equals":
+                return `=${value}`;
+            case "not_equals":
+                return `!=${value}`;
+            default:
+                return null;
+        }
+    }
+
+    if (fieldType === "enum") {
+        if (operator === "contains")
+            return value;
+        if (operator === "not_contains")
+            return `!=%${value}%`;
+        return null;
+    }
+
+    switch (operator) {
+        case "equals":
+            return `=${value}`;
+        case "not_equals":
+            return `!=${value}`;
+        case "greater":
+            return `>${value}`;
+        case "greater_or_equal":
+            return `>=${value}`;
+        case "less":
+            return `<${value}`;
+        case "less_or_equal":
+            return `<=${value}`;
+        default:
+            return null;
+    }
+};
+
+const parseExpression = (
+    fieldType: FilterFieldType,
+    expression: string,
+): { operator: string | null; value: string } => {
+    const expr = expression.trim();
+    if (!expr) return { operator: null, value: "" };
+
+    if (fieldType === "number" || fieldType === "date") {
+        if (expr.startsWith(">=")) return { operator: "greater_or_equal", value: expr.slice(2) };
+        if (expr.startsWith("<=")) return { operator: "less_or_equal", value: expr.slice(2) };
+        if (expr.startsWith("!=")) return { operator: "not_equals", value: expr.slice(2) };
+        if (expr.startsWith(">")) return { operator: "greater", value: expr.slice(1) };
+        if (expr.startsWith("<")) return { operator: "less", value: expr.slice(1) };
+        if (expr.startsWith("=")) return { operator: "equals", value: expr.slice(1) };
+        return { operator: "equals", value: expr };
+    }
+
+    if (fieldType === "enum") {
+        if (expr.startsWith("!=%") && expr.endsWith("%"))
+            return { operator: "not_contains", value: expr.slice(3, -1) };
+        if (expr.startsWith("!=")) return { operator: "not_contains", value: expr.slice(2) };
+        if (expr.startsWith("=")) return { operator: "contains", value: expr.slice(1) };
+        return { operator: "contains", value: expr };
+    }
+
+    if (expr.startsWith("!=%") && expr.endsWith("%"))
+        return { operator: "not_contains", value: expr.slice(3, -1) };
+    if (expr.startsWith("!=")) return { operator: "not_equals", value: expr.slice(2) };
+    if (expr.startsWith("=")) return { operator: "equals", value: expr.slice(1) };
+    if (expr.startsWith("%") && expr.endsWith("%")) return { operator: "contains", value: expr.slice(1, -1) };
+    if (expr.startsWith("%")) return { operator: "ends_with", value: expr.slice(1) };
+    if (expr.endsWith("%")) return { operator: "starts_with", value: expr.slice(0, -1) };
+    return { operator: "contains", value: expr };
+};
+
+const mapEnumValueToLabel = (
+    enumOptions: EnumFilterOption[] | undefined,
+    rawValue: string,
+) => {
+    return enumOptions?.find((option) => option.value === rawValue)?.label ?? rawValue;
+};
+
+export const formatFilterDisplayValue = (
+    fieldOptions: QueryFilterFieldOption[],
+    field: string,
+    expression: string,
+) => {
+    const fieldMeta = fieldOptions.find((option) => option.value === field);
+    if (!fieldMeta || fieldMeta.type !== "enum")
+        return expression;
+
+    const parsed = parseExpression(fieldMeta.type, expression);
+    const labelValue = mapEnumValueToLabel(fieldMeta.enumOptions, parsed.value);
+
+    return buildExpression(fieldMeta.type, parsed.operator, labelValue) ?? expression;
+};
+
 export default function QueryFiltersModal({
     opened,
     title,
@@ -38,216 +188,147 @@ export default function QueryFiltersModal({
     onClose,
     onSave,
 }: QueryFiltersModalProps) {
-    const [draftFilters, setDraftFilters] = useState<Record<string, string>>({});
-    const [field, setField] = useState<string | null>(null);
-    const [operator, setOperator] = useState<string | null>(null);
-    const [value, setValue] = useState("");
+    const [rows, setRows] = useState<FilterRow[]>([]);
+
+    const createEmptyRow = (defaultField?: string | null): FilterRow => {
+        const field = defaultField ?? fieldOptions[0]?.value ?? null;
+        const fieldMeta = fieldOptions.find((option) => option.value === field);
+        const operator = fieldMeta ? getOperatorOptions(fieldMeta.type)[0]?.value ?? null : null;
+        const value = fieldMeta?.type === "enum" ? fieldMeta.enumOptions?.[0]?.value ?? "" : "";
+        return { id: createRowId(), field, operator, value };
+    };
 
     useEffect(() => {
         if (!opened) return;
-        setDraftFilters(filters);
-        setField((currentField) => currentField ?? fieldOptions[0]?.value ?? null);
-    }, [filters, opened]);
 
-    const selectedField = useMemo(
-        () => fieldOptions.find((option) => option.value === field) ?? null,
-        [field, fieldOptions],
-    );
+        const parsedRows: FilterRow[] = [];
+        for (const [field, expression] of Object.entries(filters)) {
+            const fieldMeta = fieldOptions.find((option) => option.value === field);
+            if (!fieldMeta) continue;
 
-    const selectedFieldLabel = selectedField?.label ?? "поле";
+            const parsed = parseExpression(fieldMeta.type, expression);
+            const defaultOperator = getOperatorOptions(fieldMeta.type)[0]?.value ?? null;
 
-    const operatorOptions = useMemo<FilterExpressionOption[]>(() => {
-        if (!selectedField) return [];
-
-        if (selectedField.type === "string") {
-            return [
-                { value: "contains", label: "Содержит" },
-                { value: "not_contains", label: "Не содержит" },
-                { value: "starts_with", label: "Начинается с" },
-                { value: "ends_with", label: "Заканчивается на" },
-                { value: "equals", label: "Равно" },
-                { value: "not_equals", label: "Не равно" },
-            ];
+            parsedRows.push({
+                id: createRowId(),
+                field,
+                operator: parsed.operator ?? defaultOperator,
+                value: parsed.value,
+            });
         }
 
-        if (selectedField.type === "number" || selectedField.type === "date") {
-            return [
-                { value: "equals", label: "Равно" },
-                { value: "not_equals", label: "Не равно" },
-                { value: "greater", label: "Больше" },
-                { value: "greater_or_equal", label: "Больше или равно" },
-                { value: "less", label: "Меньше" },
-                { value: "less_or_equal", label: "Меньше или равно" },
-            ];
-        }
+        setRows(parsedRows.length > 0 ? parsedRows : [createEmptyRow()]);
+    }, [fieldOptions, filters, opened]);
 
-        return [
-            { value: "contains", label: "Содержит" },
-            { value: "not_contains", label: "Не содержит" },
-        ];
-    }, [selectedField]);
-
-    useEffect(() => {
-        const nextOperator = operatorOptions[0]?.value ?? null;
-        setOperator(nextOperator);
-
-        if (selectedField?.type === "enum") {
-            setValue(selectedField.enumOptions?.[0]?.value ?? "");
-            return;
-        }
-
-        setValue("");
-    }, [field, operatorOptions, selectedField?.enumOptions, selectedField?.type]);
-
-    const buildExpression = () => {
-        if (!selectedField || !operator) return null;
-
-        const trimmedValue = value.trim();
-        if (!trimmedValue) return null;
-
-        if (selectedField.type === "string") {
-            switch (operator) {
-                case "contains":
-                    return trimmedValue;
-                case "not_contains":
-                    return `!=%${trimmedValue}%`;
-                case "starts_with":
-                    return `${trimmedValue}%`;
-                case "ends_with":
-                    return `%${trimmedValue}`;
-                case "equals":
-                    return `=${trimmedValue}`;
-                case "not_equals":
-                    return `!=${trimmedValue}`;
-                default:
-                    return null;
-            }
-        }
-
-        if (selectedField.type === "enum") {
-            if (operator === "contains")
-                return trimmedValue;
-            if (operator === "not_contains")
-                return `!=%${trimmedValue}%`;
-            return null;
-        }
-
-        switch (operator) {
-            case "equals":
-                return `=${trimmedValue}`;
-            case "not_equals":
-                return `!=${trimmedValue}`;
-            case "greater":
-                return `>${trimmedValue}`;
-            case "greater_or_equal":
-                return `>=${trimmedValue}`;
-            case "less":
-                return `<${trimmedValue}`;
-            case "less_or_equal":
-                return `<=${trimmedValue}`;
-            default:
-                return null;
-        }
+    const updateRow = (rowId: string, updater: (row: FilterRow) => FilterRow) => {
+        setRows((prev) => prev.map((row) => (row.id === rowId ? updater(row) : row)));
     };
 
-    const addFilter = () => {
-        if (!field) return;
-        const expression = buildExpression();
-        if (!expression) return;
-
-        setDraftFilters((prev) => ({ ...prev, [field]: expression }));
+    const addRow = () => {
+        setRows((prev) => [...prev, createEmptyRow()]);
     };
 
-    const removeFilter = (filterField: string) => {
-        setDraftFilters((prev) => {
-            const next = { ...prev };
-            delete next[filterField];
-            return next;
+    const removeRow = (rowId: string) => {
+        setRows((prev) => {
+            const next = prev.filter((row) => row.id !== rowId);
+            return next.length > 0 ? next : [createEmptyRow()];
         });
     };
 
-    const rows = Object.entries(draftFilters);
-
     return (
-        <Modal opened={opened} onClose={onClose} title={title} size="lg" centered>
+        <Modal opened={opened} onClose={onClose} title={title} size="xl" centered>
             <Stack gap="md">
-                <Group grow align="flex-end" wrap="nowrap">
-                    <Select
-                        label="Поле"
-                        placeholder="Выберите поле"
-                        data={fieldOptions}
-                        value={field}
-                        onChange={setField}
-                        searchable
-                        nothingFoundMessage="Поле не найдено"
-                    />
-                    <Select
-                        label={`Выражение для ${selectedFieldLabel}`}
-                        placeholder="Выберите выражение"
-                        data={operatorOptions}
-                        value={operator}
-                        onChange={setOperator}
-                        disabled={!selectedField}
-                    />
-                    {selectedField?.type === "enum" ? (
-                        <Select
-                            label="Значение"
-                            placeholder="Выберите значение"
-                            data={selectedField.enumOptions ?? []}
-                            value={value}
-                            onChange={(nextValue) => setValue(nextValue ?? "")}
-                            searchable
-                            nothingFoundMessage="Значение не найдено"
-                        />
-                    ) : (
-                        <TextInput
-                            label={`Значение для ${selectedFieldLabel}`}
-                            placeholder="Введите значение"
-                            value={value}
-                            onChange={(e) => setValue(e.currentTarget.value)}
-                            type={selectedField?.type === "date" ? "date" : "text"}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    addFilter();
-                                }
-                            }}
-                        />
-                    )}
-                </Group>
+                <Stack gap="xs">
+                    {rows.map((row, index) => {
+                        const selectedField = fieldOptions.find((option) => option.value === row.field) ?? null;
+                        const selectedFieldLabel = selectedField?.label ?? "поле";
+                        const operatorOptions = selectedField
+                            ? getOperatorOptions(selectedField.type)
+                            : [];
 
-                <Group justify="flex-end">
-                    <Button variant="light" color={mainColor} onClick={addFilter} disabled={!field || !operator || !value.trim()}>
+                        return (
+                            <Group key={row.id} align="flex-end" wrap="nowrap">
+                                <Box style={{ flex: 1 }}>
+                                    <Select
+                                        label={index === 0 ? "Поле" : undefined}
+                                        placeholder="Выберите поле"
+                                        data={fieldOptions}
+                                        value={row.field}
+                                        onChange={(nextField) => {
+                                            const fieldMeta = fieldOptions.find((option) => option.value === nextField) ?? null;
+                                            const nextOperator = fieldMeta
+                                                ? getOperatorOptions(fieldMeta.type)[0]?.value ?? null
+                                                : null;
+                                            const nextValue = fieldMeta?.type === "enum"
+                                                ? fieldMeta.enumOptions?.[0]?.value ?? ""
+                                                : "";
+
+                                            updateRow(row.id, () => ({
+                                                ...row,
+                                                field: nextField,
+                                                operator: nextOperator,
+                                                value: nextValue,
+                                            }));
+                                        }}
+                                        searchable
+                                        nothingFoundMessage="Поле не найдено"
+                                    />
+                                </Box>
+                                <Box style={{ flex: 1 }}>
+                                    <Select
+                                        label={index === 0 ? `Выражение для ${selectedFieldLabel}` : undefined}
+                                        placeholder="Выберите выражение"
+                                        data={operatorOptions}
+                                        value={row.operator}
+                                        onChange={(nextOperator) => {
+                                            updateRow(row.id, (current) => ({ ...current, operator: nextOperator }));
+                                        }}
+                                        disabled={!selectedField}
+                                    />
+                                </Box>
+                                <Box style={{ flex: 1 }}>
+                                    {selectedField?.type === "enum" ? (
+                                        <Select
+                                            label={index === 0 ? "Значение" : undefined}
+                                            placeholder="Выберите значение"
+                                            data={selectedField.enumOptions ?? []}
+                                            value={row.value}
+                                            onChange={(nextValue) => {
+                                                updateRow(row.id, (current) => ({ ...current, value: nextValue ?? "" }));
+                                            }}
+                                            searchable
+                                            nothingFoundMessage="Значение не найдено"
+                                        />
+                                    ) : (
+                                        <TextInput
+                                            label={index === 0 ? `Значение для ${selectedFieldLabel}` : undefined}
+                                            placeholder="Введите значение"
+                                            value={row.value}
+                                            onChange={(e) => {
+                                                const nextValue = e.currentTarget.value;
+                                                updateRow(row.id, (current) => ({ ...current, value: nextValue }));
+                                            }}
+                                            type={selectedField?.type === "date" ? "date" : "text"}
+                                        />
+                                    )}
+                                </Box>
+                                <Button
+                                    variant="subtle"
+                                    color="red"
+                                    onClick={() => removeRow(row.id)}
+                                >
+                                    Удалить
+                                </Button>
+                            </Group>
+                        );
+                    })}
+                </Stack>
+
+                <Group justify="flex-start">
+                    <Button variant="light" color={mainColor} onClick={addRow}>
                         Добавить фильтр
                     </Button>
                 </Group>
-
-                {rows.length === 0 ? (
-                    <Text size="sm" c="dimmed">
-                        Фильтры пока не добавлены.
-                    </Text>
-                ) : (
-                    <Stack gap="xs">
-                        {rows.map(([filterField, value]) => {
-                            const label = fieldOptions.find((option) => option.value === filterField)?.label ?? filterField;
-                            return (
-                                <Group key={filterField} justify="space-between" wrap="nowrap">
-                                    <Text size="sm">
-                                        {label}: <Text span fw={600}>{value}</Text>
-                                    </Text>
-                                    <Button
-                                        variant="subtle"
-                                        color="red"
-                                        size="compact-sm"
-                                        onClick={() => removeFilter(filterField)}
-                                    >
-                                        Удалить
-                                    </Button>
-                                </Group>
-                            );
-                        })}
-                    </Stack>
-                )}
 
                 <Group justify="flex-end" mt="sm">
                     <Button variant="default" onClick={onClose}>
@@ -256,10 +337,21 @@ export default function QueryFiltersModal({
                     <Button
                         color={mainColor}
                         onClick={async () => {
-                            const currentExpression = buildExpression();
-                            const nextFilters = field && currentExpression
-                                ? { ...draftFilters, [field]: currentExpression }
-                                : draftFilters;
+                            const nextFilters: Record<string, string> = {};
+
+                            for (const row of rows) {
+                                const field = row.field?.trim();
+                                if (!field) continue;
+
+                                const fieldMeta = fieldOptions.find((option) => option.value === field);
+                                if (!fieldMeta) continue;
+
+                                const expression = buildExpression(fieldMeta.type, row.operator, row.value);
+                                if (!expression) continue;
+
+                                nextFilters[field] = expression;
+                            }
+
                             await onSave(nextFilters);
                             onClose();
                         }}
