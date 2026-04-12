@@ -15,6 +15,25 @@
     padding-bottom: var(--mantine-spacing-sm);
 }
 
+.mobileMenu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-md);
+    padding-bottom: var(--mantine-spacing-md);
+}
+
+.mobileNav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
+}
+
+.mobileActions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
+}
+
 .tabsList {
     &::before {
         display: none;

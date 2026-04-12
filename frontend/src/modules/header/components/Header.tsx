@@ -1,6 +1,6 @@
-import { Burger, Button, Container, Group, Menu, Tabs, Title } from "@mantine/core";
+import { Burger, Button, Collapse, Container, Group, Menu, Tabs, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import classes from "./Header.module.css";
 import { ThemeToggle } from "../../../shared/components/theme/ThemeToogle.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
@@ -14,7 +14,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const Header = () => {
-    const [opened, { toggle }] = useDisclosure(false);
+    const [opened, { toggle, close }] = useDisclosure(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -30,6 +30,10 @@ export const Header = () => {
 
     const isAuthRoute = location.pathname.startsWith("/auth/");
 
+    useEffect(() => {
+        close();
+    }, [location.pathname, close]);
+
     const sessionState = location.state as SessionRouteState | null;
     const navSourceId = sessionState?.navContext?.id;
     const activeNavId = location.pathname.startsWith("/sessions/")
@@ -42,7 +46,15 @@ export const Header = () => {
     const handleTabChange = (value: string | null) => {
         if (!value) return;
         const item = visibleNavItems.find((i) => i.id === value);
-        if (item) navigate(item.path);
+        if (item) {
+            navigate(item.path);
+            close();
+        }
+    };
+
+    const handleNavigate = (path: string) => {
+        navigate(path);
+        close();
     };
 
     return (
@@ -107,6 +119,74 @@ export const Header = () => {
                         </Group>
                         <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="sm" />
                     </div>
+                </Container>
+                <Container size="md" hiddenFrom="sm">
+                    <Collapse in={opened}>
+                        <div className={classes.mobileMenu}>
+                            {!isAuthRoute && (
+                                <div className={classes.mobileNav}>
+                                    {visibleNavItems.map((item) => (
+                                        <Button
+                                            key={item.id}
+                                            variant={tabValue === item.id ? "filled" : "subtle"}
+                                            color={mainColor}
+                                            onClick={() => handleNavigate(item.path)}
+                                            fullWidth
+                                        >
+                                            {item.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className={classes.mobileActions}>
+                                <ThemeToggle />
+                                {isAuthenticated ? (
+                                    <>
+                                        {!isAdmin && (
+                                            <Button
+                                                color={mainColor}
+                                                variant="outline"
+                                                onClick={() => handleNavigate("/profile")}
+                                                fullWidth
+                                            >
+                                                Профиль
+                                            </Button>
+                                        )}
+                                        <Button
+                                            color="red"
+                                            variant="light"
+                                            onClick={() => {
+                                                logout();
+                                                handleNavigate("/");
+                                            }}
+                                            fullWidth
+                                        >
+                                            Выйти
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button
+                                            color={mainColor}
+                                            variant="filled"
+                                            onClick={() => handleNavigate("/auth/login")}
+                                            fullWidth
+                                        >
+                                            Вход
+                                        </Button>
+                                        <Button
+                                            color={mainColor}
+                                            variant="outline"
+                                            onClick={() => handleNavigate("/auth/register")}
+                                            fullWidth
+                                        >
+                                            Регистрация
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </Collapse>
                 </Container>
                 {!isAuthRoute && (
                     <Container size="md">
