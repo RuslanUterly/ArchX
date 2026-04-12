@@ -16,6 +16,7 @@ import {
     collectAllLinksFromHierarchy,
     wouldCreateCycle,
 } from "../store.ts";
+import { mainColor } from "../../../shared/components/theme/colors.ts";
 
 export default function NodeEditorForm() {
     const updateSelectedNode = useDecisionTreeEditorStore((s) => s.updateSelectedNode);
@@ -126,7 +127,7 @@ export default function NodeEditorForm() {
     };
 
     return (
-        <Tabs defaultValue="node" keepMounted={false}>
+        <Tabs color={mainColor} defaultValue="node" keepMounted={false}>
             <Tabs.List grow>
                 <Tabs.Tab value="node">Узел</Tabs.Tab>
                 <Tabs.Tab value="edges">Связи</Tabs.Tab>
@@ -191,10 +192,10 @@ export default function NodeEditorForm() {
                     />
 
                     <Group justify="space-between" mt="sm">
-                        <Button variant="light" onClick={handleSave} loading={loading}>
+                        <Button color={mainColor} variant="outline" onClick={handleSave} loading={loading}>
                             Сохранить узел
                         </Button>
-                        <Button color="red" variant="outline" onClick={removeSelectedNode} loading={loading}>
+                        <Button color="red" variant="subtle" onClick={removeSelectedNode} loading={loading}>
                             Удалить узел
                         </Button>
                     </Group>
@@ -254,6 +255,7 @@ export default function NodeEditorForm() {
                                                 {link.id != null && (
                                                     <Group gap="xs" wrap="nowrap">
                                                         <Button
+                                                            color={mainColor}
                                                             size="xs"
                                                             variant="light"
                                                             onClick={() => setEditingLinkId(link.id)}
@@ -298,6 +300,7 @@ export default function NodeEditorForm() {
 
                     <Group justify="flex-start">
                         <Button
+                            color={mainColor}
                             variant="outline"
                             disabled={!canAddBranch}
                             loading={loading}
@@ -310,6 +313,7 @@ export default function NodeEditorForm() {
                             Добавить вопрос по условию
                         </Button>
                         <Button
+                            color={mainColor}
                             variant="outline"
                             disabled={!canAddBranch}
                             loading={loading}
@@ -351,7 +355,8 @@ export default function NodeEditorForm() {
                     />
 
                     <Button
-                        variant="light"
+                        color={mainColor}
+                        variant="outline"
                         disabled={!canLinkExisting}
                         loading={loading}
                         onClick={() => {
