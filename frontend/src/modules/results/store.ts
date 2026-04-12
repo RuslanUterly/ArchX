@@ -8,6 +8,8 @@ interface ResultsState {
     totalCount: number;
     page: number;
     filters: Record<string, string>;
+    sortField: string;
+    sortOrder: "asc" | "desc";
     latestLoading: boolean;
     listLoading: boolean;
     latestError: string | null;
@@ -19,6 +21,7 @@ interface ResultsState {
     setFilter: (field: string, value: string) => Promise<void>;
     removeFilter: (field: string) => Promise<void>;
     setPage: (page: number) => void;
+    setSorting: (sortField: string, sortOrder: "asc" | "desc") => Promise<void>;
     toggleSessionHidden: (sessionId: number, isHidden: boolean) => Promise<void>;
 }
 
@@ -28,6 +31,8 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     totalCount: 0,
     page: 1,
     filters: {},
+    sortField: "completedAt",
+    sortOrder: "desc",
     latestLoading: false,
     listLoading: false,
     latestError: null,
@@ -49,10 +54,10 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     },
 
     loadList: async () => {
-        const { page, filters } = get();
+        const { page, filters, sortField, sortOrder } = get();
         set({ listLoading: true, listError: null });
         try {
-            const r = await fetchSessionsPage(page, filters);
+            const r = await fetchSessionsPage(page, filters, sortField, sortOrder);
             set({ sessions: r.items, totalCount: r.totalCount });
         } catch (e) {
             set({
@@ -100,6 +105,11 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     setPage: (page: number) => {
         set({ page });
         void get().loadList();
+    },
+
+    setSorting: async (sortField, sortOrder) => {
+        set({ sortField, sortOrder, page: 1 });
+        await get().loadList();
     },
 
     toggleSessionHidden: async (sessionId, isHidden) => {

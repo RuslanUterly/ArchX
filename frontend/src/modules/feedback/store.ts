@@ -12,6 +12,8 @@ import {
 interface FeedbackStore {
     items: FeedbackTicketDto[];
     filters: Record<string, string>;
+    sortField: string;
+    sortOrder: "asc" | "desc";
     listLoading: boolean;
     listError: string | null;
 
@@ -35,6 +37,7 @@ interface FeedbackStore {
     setFilters: (filters: Record<string, string>) => Promise<void>;
     setFilter: (field: string, value: string) => Promise<void>;
     removeFilter: (field: string) => Promise<void>;
+    setSorting: (sortField: string, sortOrder: "asc" | "desc") => Promise<void>;
     loadSessions: () => Promise<void>;
 
     openCreateModal: () => void;
@@ -61,6 +64,8 @@ const resetCreateFormFields = () => ({
 export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
     items: [],
     filters: {},
+    sortField: "createdAt",
+    sortOrder: "desc",
     listLoading: false,
     listError: null,
 
@@ -77,10 +82,16 @@ export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
     adminTicketOpenError: null,
 
     loadList: async () => {
-        const { filters } = get();
+        const { filters, sortField, sortOrder } = get();
         set({ listLoading: true, listError: null });
         try {
-            const res = await queryFeedback({ page: 1, pageSize: 100, filters });
+            const res = await queryFeedback({
+                page: 1,
+                pageSize: 100,
+                filters,
+                sortField,
+                sortOrder,
+            });
             set({ items: res.items });
         } catch (e) {
             set({ listError: e instanceof Error ? e.message : "Ошибка загрузки" });
@@ -119,6 +130,11 @@ export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
         delete nextFilters[trimmedField];
 
         set({ filters: nextFilters });
+        await get().loadList();
+    },
+
+    setSorting: async (sortField, sortOrder) => {
+        set({ sortField, sortOrder });
         await get().loadList();
     },
 

@@ -16,6 +16,7 @@ import QueryFiltersModal, {
     formatFilterDisplayValue,
     type QueryFilterFieldOption,
 } from "../../../shared/components/QueryFiltersModal.tsx";
+import SortPopover, { type SortFieldOption } from "../../../shared/components/SortPopover.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useFeedbackStore } from "../store.ts";
 import AdminFeedbackListRow from "./AdminFeedbackListRow.tsx";
@@ -74,6 +75,27 @@ const FEEDBACK_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(F
         return { value, label, type: "string" };
     });
 
+const FEEDBACK_SORT_OPTIONS: SortFieldOption[] = [
+    {
+        value: "createdAt",
+        label: "Дата создания",
+        ascLabel: "Старые -> новые",
+        descLabel: "Новые -> старые",
+    },
+    {
+        value: "updatedAt",
+        label: "Дата обновления",
+        ascLabel: "Старые -> новые",
+        descLabel: "Новые -> старые",
+    },
+    {
+        value: "status",
+        label: "Статус",
+        ascLabel: "А -> Я",
+        descLabel: "Я -> А",
+    },
+];
+
 export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const items = useFeedbackStore((s) => s.items);
     const listLoading = useFeedbackStore((s) => s.listLoading);
@@ -87,6 +109,9 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const setFilter = useFeedbackStore((s) => s.setFilter);
     const setFilters = useFeedbackStore((s) => s.setFilters);
     const removeFilter = useFeedbackStore((s) => s.removeFilter);
+    const sortField = useFeedbackStore((s) => s.sortField);
+    const sortOrder = useFeedbackStore((s) => s.sortOrder);
+    const setSorting = useFeedbackStore((s) => s.setSorting);
 
     const [filtersModalOpened, setFiltersModalOpened] = useState(false);
     const [subjectFilterInput, setSubjectFilterInput] = useState(filters.subject ?? "");
@@ -152,9 +177,17 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                     />
                 </Group>
 
-                <Button color={mainColor} variant="light" onClick={() => setFiltersModalOpened(true)}>
-                    Фильтры
-                </Button>
+                <Group gap="sm" wrap="nowrap">
+                    <SortPopover
+                        field={sortField}
+                        order={sortOrder}
+                        options={FEEDBACK_SORT_OPTIONS}
+                        onApply={setSorting}
+                    />
+                    <Button color={mainColor} variant="light" onClick={() => setFiltersModalOpened(true)}>
+                        Фильтры
+                    </Button>
+                </Group>
             </Group>
 
             {Object.keys(filters).length > 0 && (

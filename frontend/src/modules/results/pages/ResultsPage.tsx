@@ -19,6 +19,7 @@ import QueryFiltersModal, {
     formatFilterDisplayValue,
     type QueryFilterFieldOption,
 } from "../../../shared/components/QueryFiltersModal.tsx";
+import SortPopover, { type SortFieldOption } from "../../../shared/components/SortPopover.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { RESULTS_PAGE_SIZE } from "../api.ts";
@@ -80,6 +81,27 @@ const RESULTS_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(RE
         return { value, label, type: "string" };
     });
 
+const RESULTS_SORT_OPTIONS: SortFieldOption[] = [
+    {
+        value: "completedAt",
+        label: "Дата завершения",
+        ascLabel: "Старые -> новые",
+        descLabel: "Новые -> старые",
+    },
+    {
+        value: "projectName",
+        label: "Название проекта",
+        ascLabel: "А -> Я",
+        descLabel: "Я -> А",
+    },
+    {
+        value: "id",
+        label: "ID сессии",
+        ascLabel: "Меньше -> больше",
+        descLabel: "Больше -> меньше",
+    },
+];
+
 export default function ResultsPage() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -99,6 +121,9 @@ export default function ResultsPage() {
     const setFilter = useResultsStore((s) => s.setFilter);
     const setFilters = useResultsStore((s) => s.setFilters);
     const removeFilter = useResultsStore((s) => s.removeFilter);
+    const sortField = useResultsStore((s) => s.sortField);
+    const sortOrder = useResultsStore((s) => s.sortOrder);
+    const setSorting = useResultsStore((s) => s.setSorting);
     const toggleSessionHidden = useResultsStore((s) => s.toggleSessionHidden);
 
     const [filtersModalOpened, setFiltersModalOpened] = useState(false);
@@ -185,6 +210,12 @@ export default function ResultsPage() {
                                 onChange={(e) => setProjectFilterInput(e.currentTarget.value)}
                             />
                         </Box>
+                        <SortPopover
+                            field={sortField}
+                            order={sortOrder}
+                            options={RESULTS_SORT_OPTIONS}
+                            onApply={setSorting}
+                        />
                         <Button
                             variant={showingHiddenOnly ? "filled" : "light"}
                             color={mainColor}
