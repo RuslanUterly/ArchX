@@ -24,6 +24,7 @@ public class SessionCompleteResponse : SessionResponseBase
     public DateTime StartedAt { get; set; }
     public DateTime CompletedAt { get; set; }
     public int? SelectedStyleNodeId { get; set; }
+    public bool IsHidden { get; set; }
 }
 
 public abstract class NodeResponseBase

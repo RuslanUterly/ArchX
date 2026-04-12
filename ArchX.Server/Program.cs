@@ -56,11 +56,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<ArchXContext>();
-//    dbContext.Database.Migrate();
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ArchXContext>();
+    dbContext.Database.Migrate();
+}
 
 using (var scope = app.Services.CreateScope())
 {

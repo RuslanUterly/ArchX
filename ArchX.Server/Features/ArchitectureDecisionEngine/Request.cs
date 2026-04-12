@@ -12,3 +12,8 @@ public class AnswerRequest
 {
     public string Answer { get; set; }
 }
+
+public class SessionVisibilityRequest
+{
+    public bool IsHidden { get; set; }
+}

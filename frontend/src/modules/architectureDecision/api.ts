@@ -149,6 +149,7 @@ export interface SessionCompleteResponse {
     startedAt: string;
     completedAt: string;
     selectedStyleNodeId?: number | null;
+    isHidden: boolean;
     result: SessionCompleteResult;
 }
 
@@ -195,6 +196,25 @@ export const getSession = async (
         throw new Error(errorText || "Сессия не найдена");
     }
     return res.json();
+};
+
+export const setSessionHiddenState = async (
+    sessionId: number,
+    isHidden: boolean,
+): Promise<void> => {
+    const res = await fetch(`${BASE_URL}/${sessionId}/hidden`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ isHidden }),
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Не удалось изменить видимость сессии");
+    }
 };
 
 // --- Дерево сессии (объединённое: стили + паттерны) ---

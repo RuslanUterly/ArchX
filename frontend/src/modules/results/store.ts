@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { SessionCompleteResponse } from "../architectureDecision/api.ts";
-import { fetchLatestSession, fetchSessionsPage } from "./api.ts";
+import { fetchLatestSession, fetchSessionsPage, setSessionHidden } from "./api.ts";
 
 interface ResultsState {
     latestSession: SessionCompleteResponse | null;
@@ -19,6 +19,7 @@ interface ResultsState {
     setFilter: (field: string, value: string) => Promise<void>;
     removeFilter: (field: string) => Promise<void>;
     setPage: (page: number) => void;
+    toggleSessionHidden: (sessionId: number, isHidden: boolean) => Promise<void>;
 }
 
 export const useResultsStore = create<ResultsState>((set, get) => ({
@@ -99,5 +100,11 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     setPage: (page: number) => {
         set({ page });
         void get().loadList();
+    },
+
+    toggleSessionHidden: async (sessionId, isHidden) => {
+        await setSessionHidden(sessionId, isHidden);
+        await get().loadLatest();
+        await get().loadList();
     },
 }));

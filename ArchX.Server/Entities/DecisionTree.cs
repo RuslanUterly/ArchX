@@ -134,6 +134,7 @@ public class Session
     // Для хранения результата первого дерева, если нужно перейти ко второму
     public int? SelectedStyleNodeId { get; set; }
     public bool IsStyleSelected { get; set; }
+    public bool IsHidden { get; set; }
 
     [NotMapped]
     public Dictionary<int, string> Answers

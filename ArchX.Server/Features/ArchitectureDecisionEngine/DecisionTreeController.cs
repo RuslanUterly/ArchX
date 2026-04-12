@@ -27,6 +27,14 @@ public class DecisionTreeController(DecisionTreeService service) : ControllerBas
         return Ok(session);
     }
 
+    [HttpPatch("{sessionId}/hidden")]
+    public async Task<IActionResult> SetSessionVisibility(int sessionId, [FromBody] SessionVisibilityRequest request)
+    {
+        var userIdFilter = IsUserRole() ? GetCurrentUserId() : null;
+        await service.SetSessionHiddenStateAsync(sessionId, request.IsHidden, userIdFilter);
+        return NoContent();
+    }
+
     [HttpGet("{sessionId}")]
     public async Task<IActionResult> GetSession(int sessionId)
     {

@@ -62,6 +62,13 @@ const getOperatorOptions = (fieldType: FilterFieldType): FilterExpressionOption[
         ];
     }
 
+    if (fieldType === "enum") {
+        return [
+            { value: "equals", label: "Равно" },
+            { value: "not_equals", label: "Не равно" },
+        ];
+    }
+
     return [
         { value: "contains", label: "Содержит" },
         { value: "not_contains", label: "Не содержит" },
@@ -98,10 +105,10 @@ const buildExpression = (
     }
 
     if (fieldType === "enum") {
-        if (operator === "contains")
-            return value;
-        if (operator === "not_contains")
-            return `!=%${value}%`;
+        if (operator === "equals")
+            return `=${value}`;
+        if (operator === "not_equals")
+            return `!=${value}`;
         return null;
     }
 
@@ -141,11 +148,9 @@ const parseExpression = (
     }
 
     if (fieldType === "enum") {
-        if (expr.startsWith("!=%") && expr.endsWith("%"))
-            return { operator: "not_contains", value: expr.slice(3, -1) };
-        if (expr.startsWith("!=")) return { operator: "not_contains", value: expr.slice(2) };
-        if (expr.startsWith("=")) return { operator: "contains", value: expr.slice(1) };
-        return { operator: "contains", value: expr };
+        if (expr.startsWith("!=")) return { operator: "not_equals", value: expr.slice(2) };
+        if (expr.startsWith("=")) return { operator: "equals", value: expr.slice(1) };
+        return { operator: "equals", value: expr };
     }
 
     if (expr.startsWith("!=%") && expr.endsWith("%"))
@@ -176,8 +181,9 @@ export const formatFilterDisplayValue = (
 
     const parsed = parseExpression(fieldMeta.type, expression);
     const labelValue = mapEnumValueToLabel(fieldMeta.enumOptions, parsed.value);
-
-    return buildExpression(fieldMeta.type, parsed.operator, labelValue) ?? expression;
+    if (parsed.operator === "not_equals")
+        return `!=${labelValue}`;
+    return labelValue;
 };
 
 export default function QueryFiltersModal({

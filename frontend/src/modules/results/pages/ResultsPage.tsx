@@ -12,7 +12,6 @@ import {
     Text,
     TextInput,
     Title,
-    UnstyledButton,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -39,6 +38,7 @@ const RESULTS_FILTER_FIELD_LABELS: Record<string, string> = {
     startedAt: "Дата старта",
     completedAt: "Дата завершения",
     selectedStyleNodeId: "ID выбранного стиля",
+    isHidden: "Скрыта",
 };
 
 const RESULTS_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(RESULTS_FILTER_FIELD_LABELS)
@@ -53,6 +53,18 @@ const RESULTS_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(RE
                     { value: "MonolithPatterns", label: "Паттерны монолита" },
                     { value: "ModularMonolithPatterns", label: "Паттерны модульного монолита" },
                     { value: "MicroservicesPatterns", label: "Паттерны микросервисов" },
+                ],
+            };
+        }
+
+        if (value === "isHidden") {
+            return {
+                value,
+                label,
+                type: "enum",
+                enumOptions: [
+                    { value: "true", label: "Да" },
+                    { value: "false", label: "Нет" },
                 ],
             };
         }
@@ -87,9 +99,11 @@ export default function ResultsPage() {
     const setFilter = useResultsStore((s) => s.setFilter);
     const setFilters = useResultsStore((s) => s.setFilters);
     const removeFilter = useResultsStore((s) => s.removeFilter);
+    const toggleSessionHidden = useResultsStore((s) => s.toggleSessionHidden);
 
     const [filtersModalOpened, setFiltersModalOpened] = useState(false);
     const [projectFilterInput, setProjectFilterInput] = useState(filters.projectName ?? "");
+    const [hiddenActionSessionId, setHiddenActionSessionId] = useState<number | null>(null);
 
     useEffect(() => {
         void loadLatest();
@@ -112,6 +126,16 @@ export default function ResultsPage() {
     const totalPages = Math.max(1, Math.ceil(totalCount / RESULTS_PAGE_SIZE));
     const from = totalCount === 0 ? 0 : (page - 1) * RESULTS_PAGE_SIZE + 1;
     const to = Math.min(page * RESULTS_PAGE_SIZE, totalCount);
+    const showingHiddenOnly = filters.isHidden === "=true" || filters.isHidden === "true";
+
+    const handleToggleHidden = async (sessionId: number, isHidden: boolean) => {
+        setHiddenActionSessionId(sessionId);
+        try {
+            await toggleSessionHidden(sessionId, isHidden);
+        } finally {
+            setHiddenActionSessionId(null);
+        }
+    };
 
     return (
         <Container size="md" style={{ width: "100%" }}>
@@ -162,6 +186,20 @@ export default function ResultsPage() {
                             />
                         </Box>
                         <Button
+                            variant={showingHiddenOnly ? "filled" : "light"}
+                            color={mainColor}
+                            onClick={() => {
+                                if (showingHiddenOnly) {
+                                    void removeFilter("isHidden");
+                                    return;
+                                }
+
+                                void setFilter("isHidden", "=true");
+                            }}
+                        >
+                            {showingHiddenOnly ? "Скрытые: включены" : "Показать скрытые"}
+                        </Button>
+                        <Button
                             color={mainColor}
                             variant="light"
                             onClick={() => setFiltersModalOpened(true)}
@@ -209,13 +247,23 @@ export default function ResultsPage() {
 
                             <Box className={classes.sessionsList}>
                                 {sessions.map((session) => (
-                                    <UnstyledButton
+                                    <Box
                                         key={session.id}
                                         onClick={() =>
                                             navigate(`/sessions/${session.id}`, {
                                                 state: buildSessionRouteState(location.pathname),
                                             })
                                         }
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter" || event.key === " ") {
+                                                event.preventDefault();
+                                                navigate(`/sessions/${session.id}`, {
+                                                    state: buildSessionRouteState(location.pathname),
+                                                });
+                                            }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
                                         className={classes.sessionRow}
                                     >
                                         <Stack gap={6} className={classes.rowContent}>
@@ -224,6 +272,19 @@ export default function ResultsPage() {
                                                     <Text fw={600}>{session.projectName}</Text>
                                                 </Group>
                                                 <Group>
+                                                    <Button
+                                                        size="compact-xs"
+                                                        variant="subtle"
+                                                        color={session.isHidden ? "teal" : "gray"}
+                                                        loading={hiddenActionSessionId === session.id}
+                                                        onClick={(event) => {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                            void handleToggleHidden(session.id, !session.isHidden);
+                                                        }}
+                                                    >
+                                                        {session.isHidden ? "Вернуть" : "Скрыть"}
+                                                    </Button>
                                                     <Badge variant="light" color={mainColor}>
                                                             {getSessionTypeLabel(session)}
                                                     </Badge>
@@ -239,7 +300,7 @@ export default function ResultsPage() {
                                                 {formatSessionDate(session.completedAt)}
                                             </Text>
                                         </Stack>
-                                    </UnstyledButton>
+                                    </Box>
                                 ))}
                             </Box>
                             {totalPages > 1 && (

@@ -22,6 +22,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
             { "selectedstylenodeid", "SelectedStyleNodeId" },
             { "id", "Id" },
             { "projectname", "ProjectName" },
+            { "ishidden", "IsHidden" },
         };
 
         FilterMapExtension.RemapQueryFields(query, fieldMap);
@@ -33,6 +34,10 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 
         if (userIdFilter.HasValue)
             sessionQuery = sessionQuery.Where(s => s.UserId == userIdFilter.Value);
+
+        var hasIsHiddenFilter = query.Filters?.ContainsKey(nameof(Session.IsHidden)) == true;
+        if (!hasIsHiddenFilter)
+            sessionQuery = sessionQuery.Where(s => !s.IsHidden);
 
         // Список: только сессии по деревьям паттернов; плюс сессии по стилям, для которых нет
         // завершённой сессии паттернов с тем же пользователем/проектом и SelectedStyleNodeId = ResultNodeId стиля.
@@ -88,6 +93,7 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
                 StartedAt = s.StartedAt,
                 CompletedAt = s.CompletedAt!.Value,
                 SelectedStyleNodeId = s.SelectedStyleNodeId,
+                IsHidden = s.IsHidden,
                 Result = new ResultNodeCompletedResponse
                 {
                     ArchitectureStyle = s.ResultNode?.ArchitectureStyle,
@@ -102,6 +108,20 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
 
         result.Items = items;
         return result;
+    }
+
+    public async Task SetSessionHiddenStateAsync(int sessionId, bool isHidden, long? userIdFilter = null)
+    {
+        using var context = await dbFactory.CreateDbContextAsync();
+
+        var session = await context.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+        if (session == null)
+            throw new NotFoundException("Сессия не найдена");
+        if (userIdFilter.HasValue && session.UserId != userIdFilter.Value)
+            throw new NotFoundException("Сессия не найдена");
+
+        session.IsHidden = isHidden;
+        await context.SaveChangesAsync();
     }
 
     public async Task<SessionInProccessResponse?> GetSessionAsync(int sessionId, long? userIdFilter = null)
