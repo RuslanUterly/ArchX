@@ -15,12 +15,12 @@ import {
     ThemeIcon,
     Title,
 } from "@mantine/core";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
 import type { SessionRouteState } from "../../../shared/navigation/sessionNav.ts";
-import { mainColor } from "../../../shared/components/theme/colors.ts";
+import { mainColor, successColor } from "../../../shared/components/theme/colors.ts";
 import {
     getCombinedSessionTree,
     type CombinedSessionTreeResponse,
@@ -57,8 +57,8 @@ function ResultBlock({ result }: { result: SessionCompleteResult | null }) {
                             <List.Item
                                 key={item}
                                 icon={
-                                    <ThemeIcon color="green" size={20} radius="xl">
-                                        <IconCheck size={14} />
+                                    <ThemeIcon color={successColor} size={20} radius="xl">
+                                        <IconCheck size={10} />
                                     </ThemeIcon>
                                 }
                             >
@@ -75,7 +75,16 @@ function ResultBlock({ result }: { result: SessionCompleteResult | null }) {
                     </Text>
                     <List spacing={4} size="sm">
                         {result.cons.map((item) => (
-                            <List.Item key={item}>{item}</List.Item>
+                            <List.Item
+                                key={item}
+                                icon={
+                                    <ThemeIcon color="red" size={20} radius="xl">
+                                        <IconX size={10} />
+                                    </ThemeIcon>
+                                }
+                            >
+                                {item}
+                            </List.Item>
                         ))}
                     </List>
                 </Stack>
@@ -101,8 +110,8 @@ function PatternDetailsBlock({ detail }: { detail: PatternDetailResponse }) {
                             <List.Item
                                 key={item}
                                 icon={
-                                    <ThemeIcon color="green" size={20} radius="xl">
-                                        <IconCheck size={14} />
+                                    <ThemeIcon color="green" size={15} radius="xl">
+                                        <IconCheck size={13} />
                                     </ThemeIcon>
                                 }
                             >
@@ -119,7 +128,16 @@ function PatternDetailsBlock({ detail }: { detail: PatternDetailResponse }) {
                     </Text>
                     <List spacing={4} size="sm">
                         {cons.map((item) => (
-                            <List.Item key={item}>{item}</List.Item>
+                            <List.Item 
+                                key={item}
+                                icon={
+                                    <ThemeIcon color="red" size={15} radius="xl">
+                                        <IconX size={10} />
+                                    </ThemeIcon>
+                                }
+                            >
+                                {item}
+                            </List.Item>
                         ))}
                     </List>
                 </Stack>
@@ -162,7 +180,7 @@ function PatternCards({ result }: { result: SessionCompleteResult | null }) {
                     <Stack gap="sm">
                         <Group justify="space-between" align="center">
                             <Text fw={600}>{pattern.name}</Text>
-                            <Badge variant="light" color="green">
+                            <Badge variant="light" color={successColor}>
                                 Паттерн
                             </Badge>
                         </Group>
@@ -323,7 +341,7 @@ export default function SessionDetailPage() {
                                         <Text size="sm" c="dimmed">
                                             Визуализация последовательности вопросов и ответов.
                                         </Text>
-                                        <SessionFlowGraph tree={patternsTree.tree} accentColor="#40a157" />
+                                        <SessionFlowGraph tree={patternsTree.tree} accentColor={successColor} />
                                     </Stack>
                                 </Paper>
                             </Stack>

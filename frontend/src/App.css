@@ -4,10 +4,12 @@ html {
 
 :root {
     --app-main-color: #4056a1;
+    --app-success-color: #40a157;
 }
 
 [data-mantine-color-scheme="dark"] {
     --app-main-color: #6f8cff;
+    --app-success-color: #66c27c;
 }
 
 .container-fill {

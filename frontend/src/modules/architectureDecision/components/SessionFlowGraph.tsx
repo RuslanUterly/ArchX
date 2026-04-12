@@ -9,6 +9,7 @@ import ReactFlow, {
 import dagre from "dagre";
 import "reactflow/dist/style.css";
 import type { QuestionNodeResponse } from "../api.ts";
+import { mainColor } from "../../../shared/components/theme/colors.ts";
 
 interface SessionFlowGraphProps {
     tree: QuestionNodeResponse;
@@ -64,7 +65,7 @@ function buildGraph(tree: QuestionNodeResponse, accentColor: string) {
             target: target.id,
             label: target.answer ?? "—",
             style: { strokeWidth: 1.5, stroke: accentColor },
-            labelStyle: { fontSize: 11, fill: "var(--mantine-color-dimmed)" },
+            labelStyle: { fontSize: 11, fill: accentColor },
         });
     }
 
@@ -110,7 +111,7 @@ function buildGraph(tree: QuestionNodeResponse, accentColor: string) {
     return { nodes, edges };
 }
 
-export default function SessionFlowGraph({ tree, accentColor = "#4056a1" }: SessionFlowGraphProps) {
+export default function SessionFlowGraph({ tree, accentColor = mainColor }: SessionFlowGraphProps) {
     const { nodes, edges } = useMemo(() => buildGraph(tree, accentColor), [tree, accentColor]);
 
     return (

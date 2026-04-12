@@ -1,7 +1,3 @@
 export const mainColor = "var(--app-main-color)";
-export const hhColor = "#a14040";
-export const cancelColor = "#a14040";
-export const successColor = "#40a157";
-export const backgroundColor = "#e4e4e4";
-export const additionalColor = "#c5cbe3";
+export const successColor = "var(--app-success-color)";
 

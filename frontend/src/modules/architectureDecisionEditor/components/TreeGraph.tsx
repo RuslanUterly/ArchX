@@ -16,7 +16,7 @@ interface TreeGraphProps {
 }
 
 const RESULT_ACCENT_COLOR = "#1976d2";
-const QUESTION_BORDER_COLOR = "var(--mantine-color-default-border)";
+const QUESTION_BORDER_COLOR = "var(--app-main-color)";
 
 const buildGraph = (hierarchy: NodeHierarchy[]) => {
     const dagreGraph = new dagre.graphlib.Graph({ multigraph: true });
@@ -73,7 +73,7 @@ const buildGraph = (hierarchy: NodeHierarchy[]) => {
                         stroke: "var(--mantine-color-dimmed)",
                     },
                     labelStyle: {
-                        fill: "var(--mantine-color-dimmed)",
+                        fill: "var(--app-main-color)",
                         fontSize: 12,
                     },
                 });
