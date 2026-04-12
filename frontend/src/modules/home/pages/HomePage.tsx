@@ -38,12 +38,16 @@ export default function HomePage() {
                         <Title order={2} c={mainColor}>
                             ArchX
                         </Title>
-                        <Text c="dimmed">
-                            Поможем выбрать архитектурный стиль и подходящие паттерны на основе
-                            короткого опросника. Вопросы подбираются динамически по вашим ответам.
-                        </Text>
+                        {
+                            !isAdmin && (
+                                <Text c="dimmed">
+                                    Поможем выбрать архитектурный стиль и подходящие паттерны на основе
+                                    короткого опросника. Вопросы подбираются динамически по вашим ответам.
+                                </Text>
+                            )
+                        }
 
-                        <Group justify="space-between" mt="sm" align="flex-start" wrap="wrap">
+                        <Group justify="space-between" mt={!isAdmin ? "sm" : ""} align="flex-start" wrap="wrap">
                             {isAuthenticated && isAdmin ? (
                                 <Stack gap="sm" style={{ flex: 1 }}>
                                     <Text size="sm" c="dimmed">
@@ -57,6 +61,13 @@ export default function HomePage() {
                                             onClick={() => navigate("/statistics")}
                                         >
                                             Статистика
+                                        </Button>
+                                        <Button
+                                            color={mainColor}
+                                            variant="light"
+                                            onClick={() => navigate("/feedback")}
+                                        >
+                                            Обратная связь
                                         </Button>
                                         <Button
                                             color={mainColor}

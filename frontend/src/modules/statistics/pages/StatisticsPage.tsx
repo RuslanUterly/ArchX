@@ -1,15 +1,19 @@
 import {
+    Badge,
+    Box,
     Container,
+    Divider,
     Group,
     Loader,
     Paper,
+    Progress,
     SimpleGrid,
     Space,
     Stack,
-    Table,
     Text,
     Title,
 } from "@mantine/core";
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconChartLine, IconHash } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
@@ -18,55 +22,306 @@ import { gradeLabel, professionLabel } from "../labels.ts";
 
 function StatTile({ label, value }: { label: string; value: number | string }) {
     return (
-        <Paper p="md" radius="md" withBorder>
-            <Text size="xs" c="dimmed" mb={4}>
-                {label}
-            </Text>
-            <Text fw={700} size="xl" c={mainColor}>
-                {value}
-            </Text>
+        <Paper p="md" radius="md" withBorder bg="var(--mantine-color-body)">
+            <Stack gap={6}>
+                <Text size="xs" c="dimmed" fw={600}>
+                    {label}
+                </Text>
+                <Group justify="space-between" align="flex-end" wrap="nowrap">
+                    <Text fw={700} size="xl" c={mainColor}>
+                        {value}
+                    </Text>
+                    <IconChartLine size={18} color="var(--mantine-color-dimmed)" />
+                </Group>
+            </Stack>
         </Paper>
     );
 }
 
-function DailyTable({
+function formatShortDate(date: string) {
+    return new Date(date).toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+    });
+}
+
+function DailyLineChartCard({
     title,
     rows,
 }: {
     title: string;
     rows: { date: string; count: number }[];
 }) {
-    const tail = rows.slice(-14);
+    const data = rows.slice(-30);
+    const total = data.reduce((sum, row) => sum + row.count, 0);
+    const maxCount = Math.max(1, ...data.map((row) => row.count));
+    const average = data.length > 0 ? Math.round(total / data.length) : 0;
+    const current = data[data.length - 1]?.count ?? 0;
+    const previous = data[data.length - 2]?.count ?? 0;
+    const delta = current - previous;
+
+    const chartHeight = 180;
+    const chartWidth = 640;
+    const paddingX = 26;
+    const paddingTop = 16;
+    const paddingBottom = 28;
+    const innerWidth = chartWidth - paddingX * 2;
+    const innerHeight = chartHeight - paddingTop - paddingBottom;
+
+    const points = data.map((row, index) => {
+        const x =
+            data.length === 1 ? paddingX + innerWidth / 2 : paddingX + (index / (data.length - 1)) * innerWidth;
+        const y = paddingTop + innerHeight - (row.count / maxCount) * innerHeight;
+        return { x, y, count: row.count };
+    });
+    const linePath = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
+    const areaPath =
+        points.length > 0
+            ? `${linePath} L${points[points.length - 1].x} ${paddingTop + innerHeight} L${points[0].x} ${paddingTop + innerHeight} Z`
+            : "";
+    const chartId = `stat-gradient-${title.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase()}`;
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const activePoint = selectedIndex !== null ? points[selectedIndex] : null;
+    const activeRow = selectedIndex !== null ? data[selectedIndex] : null;
+    const tooltipLeftPercent = activePoint ? (activePoint.x / chartWidth) * 100 : 0;
+
+    const getClosestPointIndex = (event: React.MouseEvent<SVGSVGElement>) => {
+        if (points.length === 0) return null;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const relativeX = ((event.clientX - bounds.left) / bounds.width) * chartWidth;
+        let nearestIndex = 0;
+        let nearestDistance = Number.POSITIVE_INFINITY;
+        points.forEach((point, index) => {
+            const distance = Math.abs(point.x - relativeX);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestIndex = index;
+            }
+        });
+        return nearestIndex;
+    };
+
+    const handleChartClick = (event: React.MouseEvent<SVGSVGElement>) => {
+        const nextIndex = getClosestPointIndex(event);
+        if (nextIndex === null) return;
+        setSelectedIndex((prev) => (prev === nextIndex ? null : nextIndex));
+    };
+
+    const labelDates = Array.from(
+        new Set([data[0]?.date, data[Math.floor((data.length - 1) / 2)]?.date, data[data.length - 1]?.date].filter(Boolean)),
+    ) as string[];
+
     return (
         <Paper p="md" radius="md" withBorder>
-            <Text fw={600} mb="sm">
-                {title}
-            </Text>
-            <Table striped highlightOnHover verticalSpacing="xs" fz="sm">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Дата</Table.Th>
-                        <Table.Th style={{ textAlign: "right" }}>Количество</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {tail.map((r) => (
-                        <Table.Tr key={r.date}>
-                            <Table.Td>
-                                {new Date(r.date).toLocaleDateString("ru-RU", {
-                                    day: "2-digit",
-                                    month: "2-digit",
+            <Stack gap="sm">
+                <Group justify="space-between" align="flex-start">
+                    <Text fw={600}>{title}</Text>
+                    <Badge variant="light" color={mainColor}>
+                        30 дней
+                    </Badge>
+                </Group>
+
+                {data.length === 0 ? (
+                    <Text size="sm" c="dimmed">
+                        Нет данных по дням.
+                    </Text>
+                ) : (
+                    <>
+                        <Group grow>
+                            <Paper p="xs" radius="sm" withBorder>
+                                <Text size="xs" c="dimmed">
+                                    Всего за период
+                                </Text>
+                                <Text fw={700}>{total}</Text>
+                            </Paper>
+                            <Paper p="xs" radius="sm" withBorder>
+                                <Text size="xs" c="dimmed">
+                                    Среднее в день
+                                </Text>
+                                <Text fw={700}>{average}</Text>
+                            </Paper>
+                            <Paper p="xs" radius="sm" withBorder>
+                                <Text size="xs" c="dimmed">
+                                    Последний день
+                                </Text>
+                                <Group gap={6}>
+                                    <Text fw={700}>{current}</Text>
+                                    {delta !== 0 && (
+                                        <Badge
+                                            size="sm"
+                                            variant="light"
+                                            color={delta > 0 ? "green" : "red"}
+                                            leftSection={
+                                                delta > 0 ? (
+                                                    <IconArrowNarrowUp size={14} />
+                                                ) : (
+                                                    <IconArrowNarrowDown size={14} />
+                                                )
+                                            }
+                                        >
+                                            {Math.abs(delta)}
+                                        </Badge>
+                                    )}
+                                </Group>
+                            </Paper>
+                        </Group>
+
+                        <Box pos="relative">
+                            <Box
+                                component="svg"
+                                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                                style={{ width: "100%", height: 200, display: "block", cursor: "pointer" }}
+                                onClick={handleChartClick}
+                            >
+                                <defs>
+                                    <linearGradient id={chartId} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={mainColor} stopOpacity="0.25" />
+                                        <stop offset="100%" stopColor={mainColor} stopOpacity="0.02" />
+                                    </linearGradient>
+                                </defs>
+                                {[0, 0.25, 0.5, 0.75, 1].map((step) => {
+                                    const y = paddingTop + innerHeight * step;
+                                    return (
+                                        <line
+                                            key={step}
+                                            x1={paddingX}
+                                            y1={y}
+                                            x2={chartWidth - paddingX}
+                                            y2={y}
+                                            stroke="var(--mantine-color-gray-3)"
+                                            strokeDasharray="4 4"
+                                        />
+                                    );
                                 })}
-                            </Table.Td>
-                            <Table.Td style={{ textAlign: "right" }}>{r.count}</Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
-            <Text size="xs" c="dimmed" mt="xs">
-                Показаны последние 14 дней из 30.
-            </Text>
+                                {activePoint && (
+                                    <line
+                                        x1={activePoint.x}
+                                        y1={paddingTop}
+                                        x2={activePoint.x}
+                                        y2={paddingTop + innerHeight}
+                                        stroke={mainColor}
+                                        strokeOpacity={0.35}
+                                        strokeDasharray="6 4"
+                                    />
+                                )}
+                                {areaPath && (
+                                    <path
+                                        d={areaPath}
+                                        fill={`url(#${chartId})`}
+                                        stroke="none"
+                                    />
+                                )}
+                                {linePath && (
+                                    <path
+                                        d={linePath}
+                                        fill="none"
+                                        stroke={mainColor}
+                                        strokeWidth={2.5}
+                                        strokeLinejoin="round"
+                                        strokeLinecap="round"
+                                    />
+                                )}
+                                {points.map((point, index) => (
+                                    <circle
+                                        key={index}
+                                        cx={point.x}
+                                        cy={point.y}
+                                        r={index === selectedIndex ? 5 : index === points.length - 1 ? 4 : 2.8}
+                                        fill={mainColor}
+                                        stroke={index === selectedIndex ? "white" : "none"}
+                                        strokeWidth={index === selectedIndex ? 2 : 0}
+                                    />
+                                ))}
+                            </Box>
+
+                            {activeRow && (
+                                <Paper
+                                    p={6}
+                                    radius="sm"
+                                    withBorder
+                                    shadow="sm"
+                                    style={{
+                                        position: "absolute",
+                                        top: 10,
+                                        left: `${tooltipLeftPercent}%`,
+                                        transform: "translateX(-50%)",
+                                        pointerEvents: "none",
+                                        minWidth: 134,
+                                        maxWidth: 180,
+                                        zIndex: 1,
+                                    }}
+                                >
+                                    <Text size="xs" fw={600}>
+                                        {formatShortDate(activeRow.date)}
+                                    </Text>
+                                    <Text size="xs" c="dimmed">
+                                        Количество: {activeRow.count}
+                                    </Text>
+                                </Paper>
+                            )}
+                        </Box>
+
+                        <Group justify="space-between" gap="xs">
+                            {labelDates.map((date, index) => (
+                                <Text key={`${date}-${index}`} size="xs" c="dimmed">
+                                    {formatShortDate(date)}
+                                </Text>
+                            ))}
+                        </Group>
+                    </>
+                )}
+            </Stack>
         </Paper>
+    );
+}
+
+function RankedList({
+    items,
+    emptyHint,
+}: {
+    items: { name: string; count: number }[];
+    emptyHint: string;
+}) {
+    const topValue = Math.max(1, ...items.map((item) => item.count));
+
+    if (items.length === 0) {
+        return (
+            <Text size="sm" c="dimmed">
+                {emptyHint}
+            </Text>
+        );
+    }
+
+    return (
+        <Stack gap="sm">
+            {items.map((item, index) => {
+                const percent = Math.round((item.count / topValue) * 100);
+                return (
+                    <Paper key={item.name} p="sm" radius="sm" withBorder>
+                        <Group justify="space-between" align="flex-start" wrap="nowrap" mb={6}>
+                            <Group gap="xs" wrap="nowrap">
+                                <Badge
+                                    size="lg"
+                                    radius="sm"
+                                    variant={index === 0 ? "filled" : "light"}
+                                    color={index === 0 ? mainColor : "gray"}
+                                    leftSection={<IconHash size={12} />}
+                                >
+                                    {index + 1}
+                                </Badge>
+                                <Text size="sm" lineClamp={2}>
+                                    {item.name}
+                                </Text>
+                            </Group>
+                            <Text size="sm" fw={600} c={mainColor} style={{ flexShrink: 0 }}>
+                                {item.count}
+                            </Text>
+                        </Group>
+                        <Progress value={percent} color={mainColor} size="sm" radius="xl" />
+                    </Paper>
+                );
+            })}
+        </Stack>
     );
 }
 
@@ -81,27 +336,10 @@ function OverallTopList({
 }) {
     return (
         <Paper p="md" radius="md" withBorder>
-            <Text fw={600} mb="sm">
-                {title}
-            </Text>
-            {items.length === 0 ? (
-                <Text size="sm" c="dimmed">
-                    {emptyHint}
-                </Text>
-            ) : (
-                <Stack gap={6}>
-                    {items.map((t) => (
-                        <Group key={t.name} justify="space-between" gap="xs" wrap="nowrap">
-                            <Text size="sm" lineClamp={2}>
-                                {t.name}
-                            </Text>
-                            <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
-                                {t.count}
-                            </Text>
-                        </Group>
-                    ))}
-                </Stack>
-            )}
+            <Stack gap="sm">
+                <Text fw={600}>{title}</Text>
+                <RankedList items={items} emptyHint={emptyHint} />
+            </Stack>
         </Paper>
     );
 }
@@ -121,27 +359,18 @@ function GradeBreakdownBlock({
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {items.map((b) => (
                     <Paper key={b.grade} p="md" radius="md" withBorder>
-                        <Text fw={600} size="sm" mb="sm">
-                            {gradeLabel(b.grade)}
-                        </Text>
-                        {b.topItems.length === 0 ? (
-                            <Text size="sm" c="dimmed">
-                                {emptyHint}
-                            </Text>
-                        ) : (
-                            <Stack gap={6}>
-                                {b.topItems.map((t) => (
-                                    <Group key={t.name} justify="space-between" gap="xs" wrap="nowrap">
-                                        <Text size="sm" lineClamp={2}>
-                                            {t.name}
-                                        </Text>
-                                        <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
-                                            {t.count}
-                                        </Text>
-                                    </Group>
-                                ))}
-                            </Stack>
-                        )}
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text fw={600} size="sm">
+                                    {gradeLabel(b.grade)}
+                                </Text>
+                                <Badge variant="light" color={mainColor}>
+                                    {b.topItems.reduce((sum, item) => sum + item.count, 0)} событий
+                                </Badge>
+                            </Group>
+                            <Divider />
+                            <RankedList items={b.topItems} emptyHint={emptyHint} />
+                        </Stack>
                     </Paper>
                 ))}
             </SimpleGrid>
@@ -160,27 +389,21 @@ function ProfessionPatternsBlock({
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {items.map((b) => (
                     <Paper key={b.profession} p="md" radius="md" withBorder>
-                        <Text fw={600} size="sm" mb="sm">
-                            {professionLabel(b.profession)}
-                        </Text>
-                        {b.topItems.length === 0 ? (
-                            <Text size="sm" c="dimmed">
-                                Пока нет данных по завершённым сессиям с паттернами.
-                            </Text>
-                        ) : (
-                            <Stack gap={6}>
-                                {b.topItems.map((t) => (
-                                    <Group key={t.name} justify="space-between" gap="xs" wrap="nowrap">
-                                        <Text size="sm" lineClamp={2}>
-                                            {t.name}
-                                        </Text>
-                                        <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
-                                            {t.count}
-                                        </Text>
-                                    </Group>
-                                ))}
-                            </Stack>
-                        )}
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text fw={600} size="sm">
+                                    {professionLabel(b.profession)}
+                                </Text>
+                                <Badge variant="light" color={mainColor}>
+                                    {b.topItems.reduce((sum, item) => sum + item.count, 0)} событий
+                                </Badge>
+                            </Group>
+                            <Divider />
+                            <RankedList
+                                items={b.topItems}
+                                emptyHint="Пока нет данных по завершённым сессиям с паттернами."
+                            />
+                        </Stack>
                     </Paper>
                 ))}
             </SimpleGrid>
@@ -202,8 +425,8 @@ function AdminSection({ admin }: { admin: AdminStatistics }) {
             </SimpleGrid>
 
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-                <DailyTable title="Новые сессии по дням (старт)" rows={admin.sessionsPerDay} />
-                <DailyTable title="Обращения по дням" rows={admin.feedbackTicketsPerDay} />
+                <DailyLineChartCard title="Новые сессии по дням (старт)" rows={admin.sessionsPerDay} />
+                <DailyLineChartCard title="Обращения по дням" rows={admin.feedbackTicketsPerDay} />
             </SimpleGrid>
 
             <Stack gap="md">
