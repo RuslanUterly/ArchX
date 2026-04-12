@@ -1,6 +1,7 @@
 import {
     Badge,
     Box,
+    Button,
     Container,
     Divider,
     Group,
@@ -9,11 +10,13 @@ import {
     Space,
     Stack,
     Text,
+    TextInput,
     Title,
     UnstyledButton,
 } from "@mantine/core";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import QueryFiltersModal, { type QueryFilterFieldOption } from "../../../shared/components/QueryFiltersModal.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
 import { RESULTS_PAGE_SIZE } from "../api.ts";
@@ -25,6 +28,42 @@ import {
 } from "../sessionUtils.ts";
 import { useResultsStore } from "../store.ts";
 import classes from "./ResultsPage.module.css";
+
+const RESULTS_FILTER_FIELD_LABELS: Record<string, string> = {
+    projectName: "Проект",
+    treeType: "Тип дерева",
+    id: "ID сессии",
+    startedAt: "Дата старта",
+    completedAt: "Дата завершения",
+    selectedStyleNodeId: "ID выбранного стиля",
+};
+
+const RESULTS_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(RESULTS_FILTER_FIELD_LABELS)
+    .map(([value, label]) => {
+        if (value === "treeType") {
+            return {
+                value,
+                label,
+                type: "enum",
+                enumOptions: [
+                    { value: "ArchitectureStyle", label: "Архитектурный стиль" },
+                    { value: "MonolithPatterns", label: "Паттерны монолита" },
+                    { value: "ModularMonolithPatterns", label: "Паттерны модульного монолита" },
+                    { value: "MicroservicesPatterns", label: "Паттерны микросервисов" },
+                ],
+            };
+        }
+
+        if (value === "startedAt" || value === "completedAt") {
+            return { value, label, type: "date" };
+        }
+
+        if (value === "id" || value === "selectedStyleNodeId") {
+            return { value, label, type: "number" };
+        }
+
+        return { value, label, type: "string" };
+    });
 
 export default function ResultsPage() {
     const navigate = useNavigate();
@@ -41,11 +80,31 @@ export default function ResultsPage() {
     const loadLatest = useResultsStore((s) => s.loadLatest);
     const loadList = useResultsStore((s) => s.loadList);
     const setPage = useResultsStore((s) => s.setPage);
+    const filters = useResultsStore((s) => s.filters);
+    const setFilter = useResultsStore((s) => s.setFilter);
+    const setFilters = useResultsStore((s) => s.setFilters);
+    const removeFilter = useResultsStore((s) => s.removeFilter);
+
+    const [filtersModalOpened, setFiltersModalOpened] = useState(false);
+    const [projectFilterInput, setProjectFilterInput] = useState(filters.projectName ?? "");
 
     useEffect(() => {
         void loadLatest();
         void loadList();
     }, [loadLatest, loadList]);
+
+    useEffect(() => {
+        setProjectFilterInput(filters.projectName ?? "");
+    }, [filters.projectName]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if ((filters.projectName ?? "") === projectFilterInput.trim()) return;
+            void setFilter("projectName", projectFilterInput);
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [filters.projectName, projectFilterInput, setFilter]);
 
     const totalPages = Math.max(1, Math.ceil(totalCount / RESULTS_PAGE_SIZE));
     const from = totalCount === 0 ? 0 : (page - 1) * RESULTS_PAGE_SIZE + 1;
@@ -89,6 +148,41 @@ export default function ResultsPage() {
                     ) : null}
 
                     <Divider label="Все сессии" labelPosition="left" />
+
+                    <Group align="flex-end" justify="space-between" wrap="nowrap" gap="sm">
+                        <Box style={{ flex: 1 }}>
+                            <TextInput
+                                label="Быстрый фильтр: проект"
+                                placeholder="Например: ArchX"
+                                value={projectFilterInput}
+                                onChange={(e) => setProjectFilterInput(e.currentTarget.value)}
+                            />
+                        </Box>
+                        <Button
+                            color={mainColor}
+                            variant="light"
+                            onClick={() => setFiltersModalOpened(true)}
+                        >
+                            Фильтры
+                        </Button>
+                    </Group>
+
+                    {Object.keys(filters).length > 0 && (
+                        <Group gap="xs">
+                            {Object.entries(filters).map(([field, value]) => (
+                                <Badge
+                                    key={field}
+                                    variant="light"
+                                    color={mainColor}
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => void removeFilter(field)}
+                                    title="Нажмите, чтобы удалить фильтр"
+                                >
+                                    {(RESULTS_FILTER_FIELD_LABELS[field] ?? field)}: {value}
+                                </Badge>
+                            ))}
+                        </Group>
+                    )}
 
                     {listLoading ? (
                         <Group justify="center" py="md">
@@ -160,6 +254,15 @@ export default function ResultsPage() {
                 </Stack>
             </Stack>
             <Space h="xl" />
+
+            <QueryFiltersModal
+                opened={filtersModalOpened}
+                onClose={() => setFiltersModalOpened(false)}
+                title="Фильтры по сессиям"
+                fieldOptions={RESULTS_FILTER_FIELD_OPTIONS}
+                filters={filters}
+                onSave={setFilters}
+            />
         </Container>
     );
 }

@@ -1,5 +1,6 @@
 using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using ArchX.Server.Features.Shared.Extension;
 using ArchX.Server.Features.Shared.Exteptions;
 using ArchX.Server.Features.Shared.Request;
 using ArchX.Server.Features.Shared.Response;
@@ -58,6 +59,22 @@ public class FeedbackService(IDbContextFactory<ArchXContext> dbFactory)
     {
         using var context = await dbFactory.CreateDbContextAsync();
 
+        var fieldMap = new Dictionary<string, string>
+        {
+            { "useremail", "UserEmail" },
+            { "id", "Id" },
+            { "sessionid", "SessionId" },
+            { "sessionprojectname", "SessionProjectName" },
+            { "category", "Category" },
+            { "subject", "Subject" },
+            { "message", "Message" },
+            { "adminreplymessage", "AdminReply.Message" },
+            { "adminreplycreatedat", "AdminReply.CreatedAt" },
+            { "createdat", "CreatedAt" },
+        };
+
+        FilterMapExtension.RemapQueryFields(query, fieldMap);
+
         var q = context.FeedbackTickets
             .Include(f => f.User)
             .Include(f => f.AdminReply)
@@ -67,18 +84,21 @@ public class FeedbackService(IDbContextFactory<ArchXContext> dbFactory)
         if (userIdFilter.HasValue)
             q = q.Where(f => f.UserId == userIdFilter.Value);
 
+        q = q.ApplyFilters(query.Filters);
+
         var totalCount = await q.CountAsync();
 
         if (query.Page > 0 && query.PageSize > 0)
         {
             q = q
-                .OrderByDescending(f => f.CreatedAt)
+                .ApplySorting(query.SortField, query.SortOrder, nameof(FeedbackTicket.CreatedAt), fallbackDescending: true)
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize);
         }
         else
         {
-            q = q.OrderByDescending(f => f.CreatedAt);
+            q = q
+                .ApplySorting(query.SortField, query.SortOrder, nameof(FeedbackTicket.CreatedAt), fallbackDescending: true);
         }
 
         var items = await q.ToListAsync();

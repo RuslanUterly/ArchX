@@ -6,6 +6,6 @@ export function fetchLatestSession() {
     return getSessions({ page: 1, pageSize: 1 });
 }
 
-export function fetchSessionsPage(page: number) {
-    return getSessions({ page, pageSize: RESULTS_PAGE_SIZE });
+export function fetchSessionsPage(page: number, filters?: Record<string, string>) {
+    return getSessions({ page, pageSize: RESULTS_PAGE_SIZE, filters: filters ?? null });
 }

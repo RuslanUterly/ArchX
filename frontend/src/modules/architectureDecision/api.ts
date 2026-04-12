@@ -160,6 +160,7 @@ export interface PagedResult<T> {
 export interface QueryParameter {
     page: number;
     pageSize: number;
+    filters?: Record<string, string> | null;
     sortField?: string | null;
     sortOrder?: string | null;
 }

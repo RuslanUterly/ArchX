@@ -1,5 +1,6 @@
 using ArchX.Server.Database;
 using ArchX.Server.Entities;
+using ArchX.Server.Features.Shared.Extension;
 using ArchX.Server.Features.Shared.Exteptions;
 using ArchX.Server.Features.Shared.Request;
 using ArchX.Server.Features.Shared.Response;
@@ -12,6 +13,18 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
     public async Task<PagedResult<SessionCompleteResponse>> GetSessionsAsync(QueryParameter query, long? userIdFilter)
     {
         using var context = await dbFactory.CreateDbContextAsync();
+
+        var fieldMap = new Dictionary<string, string>
+        {
+            { "treetype", "TreeType" },
+            { "startedat", "StartedAt" },
+            { "completedat", "CompletedAt" },
+            { "selectedstylenodeid", "SelectedStyleNodeId" },
+            { "id", "Id" },
+            { "projectname", "ProjectName" },
+        };
+
+        FilterMapExtension.RemapQueryFields(query, fieldMap);
 
         var sessionQuery = context.Sessions
             .Include(s => s.ResultNode)
@@ -38,18 +51,22 @@ public class DecisionTreeService(IDbContextFactory<ArchXContext> dbFactory)
                             || p.TreeType == TreeType.ModularMonolithPatterns
                             || p.TreeType == TreeType.MicroservicesPatterns)))));
 
+        sessionQuery = sessionQuery
+            .ApplyFilters(query.Filters);
+
         var totalCount = await sessionQuery.CountAsync();
 
         if (query.Page > 0 && query.PageSize > 0)
         {
             sessionQuery = sessionQuery
-                .OrderByDescending(s => s.CompletedAt)
+                .ApplySorting(query.SortField, query.SortOrder, nameof(Session.CompletedAt), fallbackDescending: true)
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize);
         }
         else
         {
-            sessionQuery = sessionQuery.OrderByDescending(s => s.CompletedAt);
+            sessionQuery = sessionQuery
+                .ApplySorting(query.SortField, query.SortOrder, nameof(Session.CompletedAt), fallbackDescending: true);
         }
 
         var sessions = await sessionQuery.ToListAsync();

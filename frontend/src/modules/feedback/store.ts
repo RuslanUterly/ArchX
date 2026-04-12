@@ -11,6 +11,7 @@ import {
 
 interface FeedbackStore {
     items: FeedbackTicketDto[];
+    filters: Record<string, string>;
     listLoading: boolean;
     listError: string | null;
 
@@ -31,6 +32,9 @@ interface FeedbackStore {
     adminTicketOpenError: string | null;
 
     loadList: () => Promise<void>;
+    setFilters: (filters: Record<string, string>) => Promise<void>;
+    setFilter: (field: string, value: string) => Promise<void>;
+    removeFilter: (field: string) => Promise<void>;
     loadSessions: () => Promise<void>;
 
     openCreateModal: () => void;
@@ -56,6 +60,7 @@ const resetCreateFormFields = () => ({
 
 export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
     items: [],
+    filters: {},
     listLoading: false,
     listError: null,
 
@@ -72,15 +77,49 @@ export const useFeedbackStore = create<FeedbackStore>((set, get) => ({
     adminTicketOpenError: null,
 
     loadList: async () => {
+        const { filters } = get();
         set({ listLoading: true, listError: null });
         try {
-            const res = await queryFeedback({ page: 1, pageSize: 100 });
+            const res = await queryFeedback({ page: 1, pageSize: 100, filters });
             set({ items: res.items });
         } catch (e) {
             set({ listError: e instanceof Error ? e.message : "Ошибка загрузки" });
         } finally {
             set({ listLoading: false });
         }
+    },
+
+    setFilters: async (filters) => {
+        set({ filters });
+        await get().loadList();
+    },
+
+    setFilter: async (field, value) => {
+        const trimmedField = field.trim();
+        const trimmedValue = value.trim();
+        const nextFilters = { ...get().filters };
+
+        if (!trimmedField) return;
+
+        if (!trimmedValue) {
+            delete nextFilters[trimmedField];
+        } else {
+            nextFilters[trimmedField] = trimmedValue;
+        }
+
+        set({ filters: nextFilters });
+        await get().loadList();
+    },
+
+    removeFilter: async (field) => {
+        const trimmedField = field.trim();
+        if (!trimmedField) return;
+
+        const nextFilters = { ...get().filters };
+        delete nextFilters[trimmedField];
+
+        set({ filters: nextFilters });
+        await get().loadList();
     },
 
     loadSessions: async () => {

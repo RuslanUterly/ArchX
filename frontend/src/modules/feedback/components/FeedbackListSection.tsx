@@ -6,15 +6,70 @@ import {
     Group,
     Stack,
     Text,
+    TextInput,
     Title,
     UnstyledButton,
 } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import QueryFiltersModal, { type QueryFilterFieldOption } from "../../../shared/components/QueryFiltersModal.tsx";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useFeedbackStore } from "../store.ts";
 import AdminFeedbackListRow from "./AdminFeedbackListRow.tsx";
 import UserFeedbackCard from "./UserFeedbackCard.tsx";
 import classes from "./FeedbackListSection.module.css";
+
+const FEEDBACK_FILTER_FIELD_LABELS: Record<string, string> = {
+    subject: "Тема",
+    message: "Сообщение",
+    status: "Статус",
+    category: "Категория",
+    createdAt: "Создано",
+    updatedAt: "Обновлено",
+    sessionId: "ID сессии",
+    sessionProjectName: "Проект сессии",
+    userEmail: "Email пользователя",
+    id: "ID обращения",
+};
+
+const FEEDBACK_FILTER_FIELD_OPTIONS: QueryFilterFieldOption[] = Object.entries(FEEDBACK_FILTER_FIELD_LABELS)
+    .map(([value, label]) => {
+        if (value === "status") {
+            return {
+                value,
+                label,
+                type: "enum",
+                enumOptions: [
+                    { value: "New", label: "Новый" },
+                    { value: "InReview", label: "В работе" },
+                    { value: "Resolved", label: "Решен" },
+                ],
+            };
+        }
+
+        if (value === "category") {
+            return {
+                value,
+                label,
+                type: "enum",
+                enumOptions: [
+                    { value: "Praise", label: "Похвала" },
+                    { value: "Complaint", label: "Жалоба" },
+                    { value: "Suggestion", label: "Предложение" },
+                ],
+            };
+        }
+
+        if (value === "createdAt" || value === "updatedAt") {
+            return { value, label, type: "date" };
+        }
+
+        if (value === "id" || value === "sessionId") {
+            return { value, label, type: "number" };
+        }
+
+        return { value, label, type: "string" };
+    });
 
 export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const items = useFeedbackStore((s) => s.items);
@@ -25,10 +80,39 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const openAdminTicket = useFeedbackStore((s) => s.openAdminTicket);
     const adminTicketOpenError = useFeedbackStore((s) => s.adminTicketOpenError);
     const clearAdminTicketOpenError = useFeedbackStore((s) => s.clearAdminTicketOpenError);
+    const filters = useFeedbackStore((s) => s.filters);
+    const setFilter = useFeedbackStore((s) => s.setFilter);
+    const setFilters = useFeedbackStore((s) => s.setFilters);
+    const removeFilter = useFeedbackStore((s) => s.removeFilter);
+
+    const [filtersModalOpened, setFiltersModalOpened] = useState(false);
+    const [subjectFilterInput, setSubjectFilterInput] = useState(filters.subject ?? "");
+    const [messageFilterInput, setMessageFilterInput] = useState(filters.message ?? "");
+
+    useEffect(() => {
+        setSubjectFilterInput(filters.subject ?? "");
+        setMessageFilterInput(filters.message ?? "");
+    }, [filters.message, filters.subject]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if ((filters.subject ?? "") === subjectFilterInput.trim()) return;
+            void setFilter("subject", subjectFilterInput);
+        }, 400);
+        return () => clearTimeout(timeoutId);
+    }, [filters.subject, setFilter, subjectFilterInput]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if ((filters.message ?? "") === messageFilterInput.trim()) return;
+            void setFilter("message", messageFilterInput);
+        }, 400);
+        return () => clearTimeout(timeoutId);
+    }, [filters.message, messageFilterInput, setFilter]);
 
     return (
-        <div>
-            <Group justify="space-between" mb="md" wrap="wrap">
+        <Stack gap="md">
+            <Group justify="space-between" wrap="wrap">
                 <Title order={4}>{isAdmin ? "Все обращения" : "Мои обращения"}</Title>
                 <Group gap="sm">
                     {!isAdmin && (
@@ -48,6 +132,45 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                     </ActionIcon>
                 </Group>
             </Group>
+
+            <Group align="flex-end" justify="space-between" wrap="nowrap" gap="sm">
+                <Group grow style={{ flex: 1 }}>
+                    <TextInput
+                        label="Быстрый фильтр: тема"
+                        placeholder="Например: ошибка статуса"
+                        value={subjectFilterInput}
+                        onChange={(e) => setSubjectFilterInput(e.currentTarget.value)}
+                    />
+                    <TextInput
+                        label="Быстрый фильтр: сообщение"
+                        placeholder="Например: не сохранилось"
+                        value={messageFilterInput}
+                        onChange={(e) => setMessageFilterInput(e.currentTarget.value)}
+                    />
+                </Group>
+
+                <Button color={mainColor} variant="light" onClick={() => setFiltersModalOpened(true)}>
+                    Фильтры
+                </Button>
+            </Group>
+
+            {Object.keys(filters).length > 0 && (
+                <Group gap="xs">
+                    {Object.entries(filters).map(([field, value]) => (
+                        <Badge
+                            key={field}
+                            variant="light"
+                            color={mainColor}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => void removeFilter(field)}
+                            title="Нажмите, чтобы удалить фильтр"
+                        >
+                            {(FEEDBACK_FILTER_FIELD_LABELS[field] ?? field)}: {value}
+                        </Badge>
+                    ))}
+                </Group>
+            )}
+
             {listError && (
                 <Text size="sm" c="red" mb="sm">
                     {listError}
@@ -104,6 +227,14 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                     </Box>
                 </Stack>
             )}
-        </div>
+            <QueryFiltersModal
+                opened={filtersModalOpened}
+                onClose={() => setFiltersModalOpened(false)}
+                title="Фильтры по обращениям"
+                fieldOptions={FEEDBACK_FILTER_FIELD_OPTIONS}
+                filters={filters}
+                onSave={setFilters}
+            />
+        </Stack>
     );
 }

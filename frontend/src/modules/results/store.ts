@@ -7,6 +7,7 @@ interface ResultsState {
     sessions: SessionCompleteResponse[];
     totalCount: number;
     page: number;
+    filters: Record<string, string>;
     latestLoading: boolean;
     listLoading: boolean;
     latestError: string | null;
@@ -14,6 +15,9 @@ interface ResultsState {
 
     loadLatest: () => Promise<void>;
     loadList: () => Promise<void>;
+    setFilters: (filters: Record<string, string>) => Promise<void>;
+    setFilter: (field: string, value: string) => Promise<void>;
+    removeFilter: (field: string) => Promise<void>;
     setPage: (page: number) => void;
 }
 
@@ -22,6 +26,7 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     sessions: [],
     totalCount: 0,
     page: 1,
+    filters: {},
     latestLoading: false,
     listLoading: false,
     latestError: null,
@@ -43,10 +48,10 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
     },
 
     loadList: async () => {
-        const { page } = get();
+        const { page, filters } = get();
         set({ listLoading: true, listError: null });
         try {
-            const r = await fetchSessionsPage(page);
+            const r = await fetchSessionsPage(page, filters);
             set({ sessions: r.items, totalCount: r.totalCount });
         } catch (e) {
             set({
@@ -56,6 +61,39 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
         } finally {
             set({ listLoading: false });
         }
+    },
+
+    setFilters: async (filters) => {
+        set({ filters, page: 1 });
+        await get().loadList();
+    },
+
+    setFilter: async (field, value) => {
+        const trimmedField = field.trim();
+        const trimmedValue = value.trim();
+        const nextFilters = { ...get().filters };
+
+        if (!trimmedField) return;
+
+        if (!trimmedValue) {
+            delete nextFilters[trimmedField];
+        } else {
+            nextFilters[trimmedField] = trimmedValue;
+        }
+
+        set({ filters: nextFilters, page: 1 });
+        await get().loadList();
+    },
+
+    removeFilter: async (field) => {
+        const trimmedField = field.trim();
+        if (!trimmedField) return;
+
+        const nextFilters = { ...get().filters };
+        delete nextFilters[trimmedField];
+
+        set({ filters: nextFilters, page: 1 });
+        await get().loadList();
     },
 
     setPage: (page: number) => {
