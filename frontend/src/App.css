@@ -30,3 +30,11 @@ html {
     justify-content: center;
     align-items: center;
 }
+
+.tree-graph .react-flow__edge-textbg {
+    fill: var(--mantine-color-body);
+}
+
+.tree-graph .react-flow__edge-text {
+    fill: var(--app-main-color);
+}

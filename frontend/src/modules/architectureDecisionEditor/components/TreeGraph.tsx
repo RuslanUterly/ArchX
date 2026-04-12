@@ -208,6 +208,7 @@ export default function TreeGraph(props: TreeGraphProps) {
 
     return (
         <div
+            className="tree-graph"
             style={{
                 width: "100%",
                 height: 600,

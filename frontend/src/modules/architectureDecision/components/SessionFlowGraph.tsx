@@ -114,7 +114,7 @@ export default function SessionFlowGraph({ tree, accentColor = "#4056a1" }: Sess
     const { nodes, edges } = useMemo(() => buildGraph(tree, accentColor), [tree, accentColor]);
 
     return (
-        <div style={{ width: "100%", height: 520 }}>
+        <div className="tree-graph" style={{ width: "100%", height: 520 }}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
