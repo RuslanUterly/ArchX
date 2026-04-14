@@ -11,6 +11,7 @@ import {
     Textarea,
     TextInput,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
     useDecisionTreeEditorStore,
     collectAllLinksFromHierarchy,
@@ -32,6 +33,7 @@ export default function NodeEditorForm() {
     const selectedNodeId = useDecisionTreeEditorStore((s) => s.selectedNodeId);
     const nodes = useDecisionTreeEditorStore((s) => s.nodes);
     const hierarchy = useDecisionTreeEditorStore((s) => s.hierarchy);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const selectedNode = useMemo(() => {
         if (!selectedNodeId) return null;
@@ -128,7 +130,7 @@ export default function NodeEditorForm() {
 
     return (
         <Tabs color={mainColor} defaultValue="node" keepMounted={false}>
-            <Tabs.List grow>
+            <Tabs.List grow style={{ flexWrap: isMobile ? "wrap" : "nowrap" }}>
                 <Tabs.Tab value="node">Узел</Tabs.Tab>
                 <Tabs.Tab value="edges">Связи</Tabs.Tab>
                 <Tabs.Tab value="existing">К существующему</Tabs.Tab>
@@ -191,11 +193,23 @@ export default function NodeEditorForm() {
                         placeholder="Добавьте минус и нажмите Enter"
                     />
 
-                    <Group justify="space-between" mt="sm">
-                        <Button color={mainColor} variant="outline" onClick={handleSave} loading={loading}>
+                    <Group justify="space-between" mt="sm" wrap="wrap">
+                        <Button
+                            color={mainColor}
+                            variant="outline"
+                            onClick={handleSave}
+                            loading={loading}
+                            fullWidth={Boolean(isMobile)}
+                        >
                             Сохранить узел
                         </Button>
-                        <Button color="red" variant="subtle" onClick={removeSelectedNode} loading={loading}>
+                        <Button
+                            color="red"
+                            variant="subtle"
+                            onClick={removeSelectedNode}
+                            loading={loading}
+                            fullWidth={Boolean(isMobile)}
+                        >
                             Удалить узел
                         </Button>
                     </Group>
@@ -217,17 +231,19 @@ export default function NodeEditorForm() {
                             {outgoingLinks.map((link) => (
                                 <Box key={link.id ?? link.childId}>
                                     {editingLinkId === link.id && link.id != null ? (
-                                        <Group gap="xs" wrap="nowrap">
+                                        <Group gap="xs" wrap={isMobile ? "wrap" : "nowrap"}>
                                             <TextInput
                                                 size="xs"
                                                 placeholder="Текст ответа"
                                                 value={editingLinkCondition}
                                                 onChange={(e) => setEditingLinkCondition(e.currentTarget.value)}
-                                                style={{ flex: 1 }}
+                                                style={{ flex: 1, minWidth: isMobile ? "100%" : undefined }}
                                             />
                                             <Button
                                                 size="xs"
+                                                color={mainColor}
                                                 loading={loading}
+                                                fullWidth={Boolean(isMobile)}
                                                 onClick={() => {
                                                     void updateLinkCondition(link.id!, editingLinkCondition.trim());
                                                     setEditingLinkId(null);
@@ -237,7 +253,9 @@ export default function NodeEditorForm() {
                                             </Button>
                                             <Button
                                                 size="xs"
+                                                color="red"
                                                 variant="subtle"
+                                                fullWidth={Boolean(isMobile)}
                                                 onClick={() => setEditingLinkId(null)}
                                             >
                                                 Отмена
@@ -248,16 +266,17 @@ export default function NodeEditorForm() {
                                             <Text size="xs" c="dimmed">
                                                 {childLinkCaption(link.childId)}
                                             </Text>
-                                            <Group gap="xs" wrap="nowrap" justify="space-between">
+                                            <Group gap="xs" wrap="wrap" justify="space-between">
                                                 <Text size="sm" c="dimmed">
                                                     {link.condition || "(без текста)"}
                                                 </Text>
                                                 {link.id != null && (
-                                                    <Group gap="xs" wrap="nowrap">
+                                                    <Group gap="xs" wrap="wrap">
                                                         <Button
                                                             color={mainColor}
                                                             size="xs"
                                                             variant="light"
+                                                            fullWidth={Boolean(isMobile)}
                                                             onClick={() => setEditingLinkId(link.id)}
                                                         >
                                                             Изменить
@@ -266,6 +285,7 @@ export default function NodeEditorForm() {
                                                             size="xs"
                                                             variant="subtle"
                                                             color="red"
+                                                            fullWidth={Boolean(isMobile)}
                                                             loading={loading}
                                                             onClick={() => {
                                                                 if (
@@ -298,12 +318,13 @@ export default function NodeEditorForm() {
                         onChange={(event) => setCondition(event.currentTarget.value)}
                     />
 
-                    <Group justify="flex-start">
+                    <Group justify="flex-start" wrap="wrap">
                         <Button
                             color={mainColor}
                             variant="outline"
                             disabled={!canAddBranch}
                             loading={loading}
+                            fullWidth={Boolean(isMobile)}
                             onClick={() => {
                                 if (!canAddBranch || !selectedNode.id) return;
                                 void addChildQuestion(selectedNode.id, condition.trim());
@@ -317,6 +338,7 @@ export default function NodeEditorForm() {
                             variant="outline"
                             disabled={!canAddBranch}
                             loading={loading}
+                            fullWidth={Boolean(isMobile)}
                             onClick={() => {
                                 if (!canAddBranch || !selectedNode.id) return;
                                 void addChildResult(selectedNode.id, condition.trim());
@@ -359,6 +381,7 @@ export default function NodeEditorForm() {
                         variant="outline"
                         disabled={!canLinkExisting}
                         loading={loading}
+                        fullWidth={Boolean(isMobile)}
                         onClick={() => {
                             if (!canLinkExisting || selectedNodeId == null || !Number.isFinite(existingTargetNum))
                                 return;

@@ -18,6 +18,7 @@ import { useDecisionTreeEditorStore } from "../store.ts";
 import { TreeType, type TreeTypeValue } from "../../architectureDecision/api.ts";
 import TreeGraph from "../components/TreeGraph.tsx";
 import NodeEditorForm from "../components/NodeEditorForm.tsx";
+import { useMediaQuery } from "@mantine/hooks";
 
 const treeTypeOptions = [
     { value: String(TreeType.ArchitectureStyle), label: "Архитектурные стили" },
@@ -34,6 +35,7 @@ export default function DecisionTreeEditorPage() {
     const loading = useDecisionTreeEditorStore((s) => s.loading);
     const error = useDecisionTreeEditorStore((s) => s.error);
     const clearError = useDecisionTreeEditorStore((s) => s.clearError);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     useEffect(() => {
         void loadTree();
@@ -43,11 +45,11 @@ export default function DecisionTreeEditorPage() {
         <Container size="md" style={{ width: "100%" }}>
             <Space h="xl" />
             <Stack gap="md">
-                <Group justify="space-between">
-                    <Title order={2} c={mainColor}>
+                <Group justify="space-between" wrap="wrap">
+                    <Title order={isMobile ? 3 : 2} c={mainColor}>
                         Редактор дерева решений
                     </Title>
-                    <Group>
+                    <Group wrap="nowrap" style={{ width: isMobile ? "100%" : undefined }}>
                         <Select
                             data={treeTypeOptions}
                             value={String(treeType)}
@@ -55,7 +57,7 @@ export default function DecisionTreeEditorPage() {
                                 if (!value) return;
                                 setTreeType(value as unknown as TreeTypeValue);
                             }}
-                            style={{ minWidth: 260 }}
+                            style={{ minWidth: isMobile ? 0 : 260, flex: isMobile ? 1 : undefined }}
                         />
                         <ActionIcon
                             variant="light"
