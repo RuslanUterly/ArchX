@@ -1,5 +1,6 @@
 import { Container, Space, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
 import AdminFeedbackModal from "../components/AdminFeedbackModal.tsx";
@@ -19,6 +20,7 @@ export default function FeedbackPage() {
     const adminModalOpen = useFeedbackStore((s) => s.adminModalOpen);
     const adminPrefetchedTicket = useFeedbackStore((s) => s.adminPrefetchedTicket);
     const closeAdminModal = useFeedbackStore((s) => s.closeAdminModal);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     useEffect(() => {
         void loadList();
@@ -34,7 +36,7 @@ export default function FeedbackPage() {
             <Container size="md" style={{ width: "100%" }}>
                 <Space h="xl" />
                 <Stack gap="lg">
-                    <Title order={2} c={mainColor}>
+                    <Title order={isMobile ? 3 : 2} c={mainColor}>
                         Обратная связь
                     </Title>
                     <Text size="sm" c="dimmed">
@@ -45,6 +47,7 @@ export default function FeedbackPage() {
 
                     <FeedbackListSection isAdmin={isAdmin} />
                 </Stack>
+                <Space h="xl" />
             </Container>
 
             {!isAdmin && <CreateFeedbackModal />}

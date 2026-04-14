@@ -14,6 +14,7 @@ import {
     Title,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import QueryFiltersModal, {
     formatFilterDisplayValue,
@@ -125,6 +126,7 @@ export default function ResultsPage() {
     const sortOrder = useResultsStore((s) => s.sortOrder);
     const setSorting = useResultsStore((s) => s.setSorting);
     const toggleSessionHidden = useResultsStore((s) => s.toggleSessionHidden);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const [filtersModalOpened, setFiltersModalOpened] = useState(false);
     const [projectFilterInput, setProjectFilterInput] = useState(filters.projectName ?? "");
@@ -166,7 +168,7 @@ export default function ResultsPage() {
         <Container size="md" style={{ width: "100%" }}>
             <Space h="xl" />
             <Stack gap="lg">
-                <Title order={2} c={mainColor}>
+                <Title order={isMobile ? 3 : 2} c={mainColor}>
                     Результаты
                 </Title>
 
@@ -201,8 +203,8 @@ export default function ResultsPage() {
 
                     <Divider label="Все сессии" labelPosition="left" />
 
-                    <Group align="flex-end" justify="space-between" wrap="nowrap" gap="sm">
-                        <Box style={{ flex: 1 }}>
+                    <Group align="flex-end" justify="space-between" wrap="wrap" gap="sm">
+                        <Box style={{ flex: 1, width: isMobile ? "100%" : undefined }}>
                             <TextInput
                                 label="Быстрый фильтр: проект"
                                 placeholder="Например: ArchX"
@@ -215,10 +217,12 @@ export default function ResultsPage() {
                             order={sortOrder}
                             options={RESULTS_SORT_OPTIONS}
                             onApply={setSorting}
+                            isMobile={false}
                         />
                         <Button
                             variant={showingHiddenOnly ? "filled" : "light"}
                             color={mainColor}
+                            fullWidth={Boolean(isMobile)}
                             onClick={() => {
                                 if (showingHiddenOnly) {
                                     void removeFilter("isHidden");
@@ -233,6 +237,7 @@ export default function ResultsPage() {
                         <Button
                             color={mainColor}
                             variant="light"
+                            fullWidth={Boolean(isMobile)}
                             onClick={() => setFiltersModalOpened(true)}
                         >
                             Фильтры
@@ -240,7 +245,7 @@ export default function ResultsPage() {
                     </Group>
 
                     {Object.keys(filters).length > 0 && (
-                        <Group gap="xs">
+                        <Group gap="xs" wrap="wrap">
                             {Object.entries(filters).map(([field, value]) => (
                                 <Badge
                                     key={field}
@@ -267,7 +272,7 @@ export default function ResultsPage() {
                         </Text>
                     ) : (
                         <Stack gap="sm">
-                            <Group justify="space-between" align="center">
+                            <Group justify="space-between" align="center" wrap="wrap">
                                 <Text size="sm" c="dimmed">
                                     Показано {from}–{to} из {totalCount}
                                 </Text>
@@ -298,15 +303,16 @@ export default function ResultsPage() {
                                         className={classes.sessionRow}
                                     >
                                         <Stack gap={6} className={classes.rowContent}>
-                                            <Group justify="space-between" align="flex-start">
+                                            <Group justify="space-between" align="flex-start" wrap="wrap">
                                                 <Group gap="xs">
                                                     <Text fw={600}>{session.projectName}</Text>
                                                 </Group>
-                                                <Group>
+                                                <Group wrap="wrap">
                                                     <Button
                                                         size="compact-xs"
-                                                        variant="subtle"
-                                                        color={session.isHidden ? "teal" : "gray"}
+                                                        variant="outline"
+                                                        color={"var(--mantine-color-gray-6)"}
+                                                        // fullWidth={Boolean(isMobile)}
                                                         loading={hiddenActionSessionId === session.id}
                                                         onClick={(event) => {
                                                             event.preventDefault();

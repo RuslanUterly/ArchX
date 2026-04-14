@@ -10,6 +10,7 @@ import {
     Textarea,
 } from "@mantine/core";
 import { useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
@@ -33,6 +34,7 @@ export default function AdminFeedbackModal({
     onSaved: () => Promise<void>;
 }) {
     const location = useLocation();
+    const isMobile = useMediaQuery("(max-width: 767px)");
     const [ticket, setTicket] = useState(initialTicket);
     const [status, setStatus] = useState(String(initialTicket.status));
     const [responseText, setResponseText] = useState(initialTicket.adminReply?.message ?? "");
@@ -64,7 +66,13 @@ export default function AdminFeedbackModal({
     };
 
     return (
-        <Modal opened={opened} onClose={onClose} title="Обращение" size="lg" centered>
+        <Modal
+            opened={opened}
+            onClose={onClose}
+            title="Обращение"
+            size="lg"
+            centered
+        >
             <Stack gap="md">
                 <Group gap="xs" wrap="wrap">
                     <Badge color={mainColor} variant="light">
@@ -139,11 +147,16 @@ export default function AdminFeedbackModal({
                         {saveErr}
                     </Text>
                 )}
-                <Group justify="flex-end">
-                    <Button variant="default" onClick={onClose}>
+                <Group justify="flex-end" wrap="wrap">
+                    <Button variant="default" onClick={onClose} fullWidth={Boolean(isMobile)}>
                         Закрыть
                     </Button>
-                    <Button color={mainColor} onClick={() => void saveAdmin()} loading={saving}>
+                    <Button
+                        color={mainColor}
+                        onClick={() => void saveAdmin()}
+                        loading={saving}
+                        fullWidth={Boolean(isMobile)}
+                    >
                         Сохранить
                     </Button>
                 </Group>

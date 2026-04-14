@@ -1,4 +1,5 @@
 import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { buildSessionRouteState } from "../../../shared/navigation/sessionNav.ts";
@@ -36,6 +37,7 @@ export function LastSessionDetails({
 }: LastSessionDetailsProps) {
     const navigate = useNavigate();
     const location = useLocation();
+    const isMobile = useMediaQuery("(max-width: 767px)");
     const isStyle = isArchitectureStyleSession(session);
     const styleName = resolveSessionStyleName(session);
     const patterns = session.result?.patterns?.filter(Boolean) ?? [];
@@ -49,13 +51,14 @@ export function LastSessionDetails({
                     <Title order={4} c={mainColor}>
                         Последняя сессия
                     </Title>
-                    <Group gap="xs">
+                    <Group gap="xs" wrap="wrap" style={{ width: isMobile ? "100%" : undefined }}>
                         {sectionAction && (
                             <Button
                                 size="xs"
                                 variant="outline"
                                 color={mainColor}
                                 onClick={sectionAction.onClick}
+                                fullWidth={Boolean(isMobile)}
                             >
                                 {sectionAction.label}
                             </Button>
@@ -64,6 +67,7 @@ export function LastSessionDetails({
                             size="xs"
                             variant="light"
                             color={mainColor}
+                            fullWidth={Boolean(isMobile)}
                             onClick={() =>
                                 navigate(`/sessions/${session.id}`, {
                                     state: buildSessionRouteState(location.pathname),

@@ -12,6 +12,7 @@ import {
 } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import QueryFiltersModal, {
     formatFilterDisplayValue,
     type QueryFilterFieldOption,
@@ -112,6 +113,7 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
     const sortField = useFeedbackStore((s) => s.sortField);
     const sortOrder = useFeedbackStore((s) => s.sortOrder);
     const setSorting = useFeedbackStore((s) => s.setSorting);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const [filtersModalOpened, setFiltersModalOpened] = useState(false);
     const [subjectFilterInput, setSubjectFilterInput] = useState(filters.subject ?? "");
@@ -142,9 +144,14 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
         <Stack gap="md">
             <Group justify="space-between" wrap="wrap">
                 <Title order={4}>{isAdmin ? "Все обращения" : "Мои обращения"}</Title>
-                <Group gap="sm">
+                <Group gap="sm" style={{ width: isMobile ? "100%" : undefined }}>
                     {!isAdmin && (
-                        <Button color={mainColor} onClick={openCreateModal}>
+                        <Button 
+                            color={mainColor} 
+                            onClick={openCreateModal} 
+                            style={{ minWidth: isMobile ? 0 : undefined, flex: isMobile ? 1 : undefined }}
+                            // fullWidth={Boolean(isMobile)}
+                        >
                             Новое обращение
                         </Button>
                     )}
@@ -161,8 +168,8 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                 </Group>
             </Group>
 
-            <Group align="flex-end" justify="space-between" wrap="nowrap" gap="sm">
-                <Group grow style={{ flex: 1 }}>
+            <Group align="flex-end" justify="space-between" wrap="wrap" gap="sm">
+                <Group grow align="flex-end" style={{ flex: 1, width: isMobile ? "100%" : undefined }}>
                     <TextInput
                         label="Быстрый фильтр: тема"
                         placeholder="Например: ошибка статуса"
@@ -177,21 +184,31 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
                     />
                 </Group>
 
-                <Group gap="sm" wrap="nowrap">
+                <Group
+                    gap="sm"
+                    wrap="wrap"
+                    style={{ width: isMobile ? "100%" : undefined }}
+                >
                     <SortPopover
                         field={sortField}
                         order={sortOrder}
                         options={FEEDBACK_SORT_OPTIONS}
                         onApply={setSorting}
+                        isMobile={isMobile}
                     />
-                    <Button color={mainColor} variant="light" onClick={() => setFiltersModalOpened(true)}>
+                    <Button
+                        color={mainColor}
+                        variant="light"
+                        onClick={() => setFiltersModalOpened(true)}
+                        fullWidth={Boolean(isMobile)}
+                    >
                         Фильтры
                     </Button>
                 </Group>
             </Group>
 
             {Object.keys(filters).length > 0 && (
-                <Group gap="xs">
+                <Group gap="xs" wrap="wrap">
                     {Object.entries(filters).map(([field, value]) => (
                         <Badge
                             key={field}
@@ -230,7 +247,7 @@ export default function FeedbackListSection({ isAdmin }: { isAdmin: boolean }) {
             )}
             {items.length > 0 && (
                 <Stack gap="sm">
-                    <Group justify="space-between" align="center">
+                    <Group justify="space-between" align="center" wrap="wrap">
                         <Text size="sm" c="dimmed">
                             Показано {items.length} из {items.length}
                         </Text>

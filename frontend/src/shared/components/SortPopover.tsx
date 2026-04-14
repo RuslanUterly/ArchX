@@ -22,6 +22,7 @@ interface SortPopoverProps {
     order: "asc" | "desc";
     options: SortFieldOption[];
     onApply: (field: string, order: "asc" | "desc") => Promise<void> | void;
+    isMobile: boolean;
 }
 
 export default function SortPopover({
@@ -29,6 +30,7 @@ export default function SortPopover({
     order,
     options,
     onApply,
+    isMobile,
 }: SortPopoverProps) {
     const [opened, setOpened] = useState(false);
     const [draftField, setDraftField] = useState(field);
@@ -49,13 +51,18 @@ export default function SortPopover({
         <Popover
             opened={opened}
             onChange={setOpened}
-            position="bottom-end"
+            position="bottom-start"
             withArrow
             shadow="md"
             width={320}
         >
             <Popover.Target>
-                <Button variant="light" color={mainColor} onClick={() => setOpened((prev) => !prev)}>
+                <Button 
+                    variant="light" 
+                    color={mainColor} 
+                    onClick={() => setOpened((prev) => !prev)} 
+                    fullWidth={isMobile}
+                >
                     Сортировка
                 </Button>
             </Popover.Target>

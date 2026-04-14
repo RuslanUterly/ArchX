@@ -1,4 +1,5 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import type { FeedbackTicketDto } from "../api.ts";
 import { categoryLabel, statusLabel } from "../feedbackLabels.ts";
@@ -9,8 +10,10 @@ export default function AdminFeedbackListRow({
 }: {
     ticket: FeedbackTicketDto;
 }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
+
     return (
-        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+        <Group justify="space-between" align="flex-start" wrap={isMobile ? "wrap" : "nowrap"} gap="md">
             <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
                 <Group gap="xs" wrap="wrap">
                     <Badge color={mainColor} variant="light">
