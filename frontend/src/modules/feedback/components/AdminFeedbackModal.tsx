@@ -35,6 +35,7 @@ export default function AdminFeedbackModal({
 }) {
     const location = useLocation();
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const selectComboboxProps = isMobile ? { withinPortal: false } : undefined;
     const [ticket, setTicket] = useState(initialTicket);
     const [status, setStatus] = useState(String(initialTicket.status));
     const [responseText, setResponseText] = useState(initialTicket.adminReply?.message ?? "");
@@ -117,6 +118,7 @@ export default function AdminFeedbackModal({
                     ]}
                     value={status}
                     onChange={(v) => v && setStatus(v)}
+                    comboboxProps={selectComboboxProps}
                 />
                 <Text size="xs" c="dimmed">
                     Быстрые шаблоны:

@@ -1,5 +1,6 @@
 import { Button, Group, Modal, Select, Stack, Text, Textarea, TextInput } from "@mantine/core";
 import { useMemo } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { FeedbackCategory } from "../api.ts";
 import { categoryLabel } from "../feedbackLabels.ts";
@@ -22,6 +23,8 @@ export default function CreateFeedbackModal() {
     const submitCreate = useFeedbackStore((s) => s.submitCreate);
     const sessions = useFeedbackStore((s) => s.sessions);
     const sessionsLoading = useFeedbackStore((s) => s.sessionsLoading);
+    const isMobile = useMediaQuery("(max-width: 767px)");
+    const selectComboboxProps = isMobile ? { withinPortal: false } : undefined;
 
     const sessionSelectData = useMemo(
         () =>
@@ -33,7 +36,13 @@ export default function CreateFeedbackModal() {
     );
 
     return (
-        <Modal opened={opened} onClose={closeCreateModal} title="Новое обращение" size="lg" centered>
+        <Modal
+            opened={opened}
+            onClose={closeCreateModal}
+            title="Новое обращение"
+            size="lg"
+            centered
+        >
             <Stack gap="md">
                 <Select
                     label="Тип"
@@ -44,6 +53,7 @@ export default function CreateFeedbackModal() {
                     ]}
                     value={category}
                     onChange={(v) => v && setCategory(v)}
+                    comboboxProps={selectComboboxProps}
                 />
                 <Select
                     label="Сессия опроса (если баг в конкретном проходе)"
@@ -53,6 +63,7 @@ export default function CreateFeedbackModal() {
                     onChange={setSessionId}
                     disabled={sessionsLoading}
                     clearable
+                    comboboxProps={selectComboboxProps}
                 />
                 <TextInput
                     label="Тема (необязательно)"
@@ -74,11 +85,16 @@ export default function CreateFeedbackModal() {
                         {submitError}
                     </Text>
                 )}
-                <Group justify="flex-end">
-                    <Button variant="default" onClick={closeCreateModal}>
+                <Group justify="flex-end" wrap="wrap">
+                    <Button variant="default" onClick={closeCreateModal} fullWidth={Boolean(isMobile)}>
                         Отмена
                     </Button>
-                    <Button color={mainColor} onClick={() => void submitCreate()} loading={submitting}>
+                    <Button
+                        color={mainColor}
+                        onClick={() => void submitCreate()}
+                        loading={submitting}
+                        fullWidth={Boolean(isMobile)}
+                    >
                         Отправить
                     </Button>
                 </Group>

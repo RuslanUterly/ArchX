@@ -200,6 +200,7 @@ export default function QueryFiltersModal({
     const rowFieldStyle = isMobile
         ? { flex: "1 0 100%", width: "100%", maxWidth: "100%" }
         : { flex: 1 };
+    const selectComboboxProps = isMobile ? { withinPortal: false } : undefined;
 
     const createEmptyRow = (defaultField?: string | null): FilterRow => {
         const field = defaultField ?? fieldOptions[0]?.value ?? null;
@@ -294,6 +295,7 @@ export default function QueryFiltersModal({
                                         }}
                                         searchable
                                         nothingFoundMessage="Поле не найдено"
+                                        comboboxProps={selectComboboxProps}
                                     />
                                 </Box>
                                 <Box style={rowFieldStyle}>
@@ -306,6 +308,7 @@ export default function QueryFiltersModal({
                                             updateRow(row.id, (current) => ({ ...current, operator: nextOperator }));
                                         }}
                                         disabled={!selectedField}
+                                        comboboxProps={selectComboboxProps}
                                     />
                                 </Box>
                                 <Box style={rowFieldStyle}>
@@ -320,6 +323,7 @@ export default function QueryFiltersModal({
                                             }}
                                             searchable
                                             nothingFoundMessage="Значение не найдено"
+                                            comboboxProps={selectComboboxProps}
                                         />
                                     ) : (
                                         <TextInput
