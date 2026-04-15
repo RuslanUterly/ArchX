@@ -7,7 +7,7 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const from = (location.state as any)?.from?.pathname || '/';
-    const isMobile = useMediaQuery("(max-width: 48em)");
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     return (
         <Center>
