@@ -263,6 +263,7 @@ export default function QueryFiltersModal({
                         const operatorOptions = selectedField
                             ? getOperatorOptions(selectedField.type)
                             : [];
+                        const shouldShowLabel = isMobile || index === 0;
 
                         return (
                             <Group
@@ -273,7 +274,7 @@ export default function QueryFiltersModal({
                             >
                                 <Box style={rowFieldStyle}>
                                     <Select
-                                        label={index === 0 ? "Поле" : undefined}
+                                        label={shouldShowLabel ? "Поле" : undefined}
                                         placeholder="Выберите поле"
                                         data={fieldOptions}
                                         value={row.field}
@@ -300,7 +301,7 @@ export default function QueryFiltersModal({
                                 </Box>
                                 <Box style={rowFieldStyle}>
                                     <Select
-                                        label={index === 0 ? `Выражение для ${selectedFieldLabel}` : undefined}
+                                        label={shouldShowLabel ? `Выражение для ${selectedFieldLabel}` : undefined}
                                         placeholder="Выберите выражение"
                                         data={operatorOptions}
                                         value={row.operator}
@@ -314,7 +315,7 @@ export default function QueryFiltersModal({
                                 <Box style={rowFieldStyle}>
                                     {selectedField?.type === "enum" ? (
                                         <Select
-                                            label={index === 0 ? "Значение" : undefined}
+                                            label={shouldShowLabel ? "Значение" : undefined}
                                             placeholder="Выберите значение"
                                             data={selectedField.enumOptions ?? []}
                                             value={row.value}
@@ -327,7 +328,7 @@ export default function QueryFiltersModal({
                                         />
                                     ) : (
                                         <TextInput
-                                            label={index === 0 ? `Значение для ${selectedFieldLabel}` : undefined}
+                                            label={shouldShowLabel ? `Значение для ${selectedFieldLabel}` : undefined}
                                             placeholder="Введите значение"
                                             value={row.value}
 
