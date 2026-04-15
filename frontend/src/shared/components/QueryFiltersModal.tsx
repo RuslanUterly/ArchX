@@ -1,5 +1,6 @@
 import { Box, Button, Group, Modal, Select, Stack, TextInput } from "@mantine/core";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "./theme/colors.ts";
 
 type FilterFieldType = "string" | "number" | "date" | "enum";
@@ -195,6 +196,10 @@ export default function QueryFiltersModal({
     onSave,
 }: QueryFiltersModalProps) {
     const [rows, setRows] = useState<FilterRow[]>([]);
+    const isMobile = useMediaQuery("(max-width: 767px)");
+    const rowFieldStyle = isMobile
+        ? { flex: "1 0 100%", width: "100%", maxWidth: "100%" }
+        : { flex: 1 };
 
     const createEmptyRow = (defaultField?: string | null): FilterRow => {
         const field = defaultField ?? fieldOptions[0]?.value ?? null;
@@ -242,7 +247,13 @@ export default function QueryFiltersModal({
     };
 
     return (
-        <Modal opened={opened} onClose={onClose} title={title} size="xl" centered>
+        <Modal
+            opened={opened}
+            onClose={onClose}
+            title={title}
+            size="xl"
+            centered
+        >
             <Stack gap="md">
                 <Stack gap="xs">
                     {rows.map((row, index) => {
@@ -253,8 +264,13 @@ export default function QueryFiltersModal({
                             : [];
 
                         return (
-                            <Group key={row.id} align="flex-end" wrap="nowrap">
-                                <Box style={{ flex: 1 }}>
+                            <Group
+                                key={row.id}
+                                align="flex-end"
+                                wrap={isMobile ? "wrap" : "nowrap"}
+                                style={{ alignItems: isMobile ? "stretch" : undefined }}
+                            >
+                                <Box style={rowFieldStyle}>
                                     <Select
                                         label={index === 0 ? "Поле" : undefined}
                                         placeholder="Выберите поле"
@@ -280,7 +296,7 @@ export default function QueryFiltersModal({
                                         nothingFoundMessage="Поле не найдено"
                                     />
                                 </Box>
-                                <Box style={{ flex: 1 }}>
+                                <Box style={rowFieldStyle}>
                                     <Select
                                         label={index === 0 ? `Выражение для ${selectedFieldLabel}` : undefined}
                                         placeholder="Выберите выражение"
@@ -292,7 +308,7 @@ export default function QueryFiltersModal({
                                         disabled={!selectedField}
                                     />
                                 </Box>
-                                <Box style={{ flex: 1 }}>
+                                <Box style={rowFieldStyle}>
                                     {selectedField?.type === "enum" ? (
                                         <Select
                                             label={index === 0 ? "Значение" : undefined}
@@ -310,6 +326,7 @@ export default function QueryFiltersModal({
                                             label={index === 0 ? `Значение для ${selectedFieldLabel}` : undefined}
                                             placeholder="Введите значение"
                                             value={row.value}
+
                                             onChange={(e) => {
                                                 const nextValue = e.currentTarget.value;
                                                 updateRow(row.id, (current) => ({ ...current, value: nextValue }));
@@ -322,6 +339,7 @@ export default function QueryFiltersModal({
                                     variant="subtle"
                                     color="red"
                                     onClick={() => removeRow(row.id)}
+                                    fullWidth={Boolean(isMobile)}
                                 >
                                     Удалить
                                 </Button>
@@ -330,18 +348,24 @@ export default function QueryFiltersModal({
                     })}
                 </Stack>
 
-                <Group justify="flex-start">
-                    <Button variant="light" color={mainColor} onClick={addRow}>
+                <Group justify="flex-start" wrap="wrap">
+                    <Button
+                        variant="light"
+                        color={mainColor}
+                        onClick={addRow}
+                        fullWidth={Boolean(isMobile)}
+                    >
                         Добавить фильтр
                     </Button>
                 </Group>
 
-                <Group justify="flex-end" mt="sm">
-                    <Button variant="default" onClick={onClose}>
+                <Group justify="flex-end" mt="sm" wrap="wrap">
+                    <Button variant="default" onClick={onClose} fullWidth={Boolean(isMobile)}>
                         Отмена
                     </Button>
                     <Button
                         color={mainColor}
+                        fullWidth={Boolean(isMobile)}
                         onClick={async () => {
                             const nextFilters: Record<string, string> = {};
 
