@@ -15,19 +15,22 @@ import {
 } from "@mantine/core";
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconChartLine, IconHash } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
 import { getStatistics, type AdminStatistics, type StatisticsResponse } from "../api.ts";
 import { gradeLabel, professionLabel } from "../labels.ts";
 
 function StatTile({ label, value }: { label: string; value: number | string }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
+
     return (
         <Paper p="md" radius="md" withBorder bg="var(--mantine-color-body)">
             <Stack gap={6}>
                 <Text size="xs" c="dimmed" fw={600}>
                     {label}
                 </Text>
-                <Group justify="space-between" align="flex-end" wrap="nowrap">
+                <Group justify="space-between" align="flex-end" wrap={isMobile ? "wrap" : "nowrap"}>
                     <Text fw={700} size="xl" c={mainColor}>
                         {value}
                     </Text>
@@ -52,6 +55,7 @@ function DailyLineChartCard({
     title: string;
     rows: { date: string; count: number }[];
 }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
     const data = rows.slice(-30);
     const total = data.reduce((sum, row) => sum + row.count, 0);
     const maxCount = Math.max(1, ...data.map((row) => row.count));
@@ -170,7 +174,7 @@ function DailyLineChartCard({
                             <Box
                                 component="svg"
                                 viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                                style={{ width: "100%", height: 200, display: "block", cursor: "pointer" }}
+                                style={{ width: "100%", height: isMobile ? 160 : 200, display: "block", cursor: "pointer" }}
                                 onClick={handleChartClick}
                             >
                                 <defs>
@@ -246,8 +250,8 @@ function DailyLineChartCard({
                                         left: `${tooltipLeftPercent}%`,
                                         transform: "translateX(-50%)",
                                         pointerEvents: "none",
-                                        minWidth: 134,
-                                        maxWidth: 180,
+                                        minWidth: isMobile ? 104 : 134,
+                                        maxWidth: isMobile ? 142 : 180,
                                         zIndex: 1,
                                     }}
                                 >
@@ -261,7 +265,7 @@ function DailyLineChartCard({
                             )}
                         </Box>
 
-                        <Group justify="space-between" gap="xs">
+                        <Group justify="space-between" gap="xs" wrap="wrap">
                             {labelDates.map((date, index) => (
                                 <Text key={`${date}-${index}`} size="xs" c="dimmed">
                                     {formatShortDate(date)}
@@ -282,6 +286,7 @@ function RankedList({
     items: { name: string; count: number }[];
     emptyHint: string;
 }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
     const topValue = Math.max(1, ...items.map((item) => item.count));
 
     if (items.length === 0) {
@@ -298,8 +303,8 @@ function RankedList({
                 const percent = Math.round((item.count / topValue) * 100);
                 return (
                     <Paper key={item.name} p="sm" radius="sm" withBorder>
-                        <Group justify="space-between" align="flex-start" wrap="nowrap" mb={6}>
-                            <Group gap="xs" wrap="nowrap">
+                        <Group justify="space-between" align="flex-start" wrap={isMobile ? "wrap" : "nowrap"} mb={6}>
+                            <Group gap="xs" wrap={isMobile ? "wrap" : "nowrap"}>
                                 <Badge
                                     size="lg"
                                     radius="sm"
@@ -353,14 +358,16 @@ function GradeBreakdownBlock({
     items: { grade: number; topItems: { name: string; count: number }[] }[];
     emptyHint: string;
 }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
+
     return (
         <Stack gap="md">
-            <Title order={4}>{heading}</Title>
+            <Title order={isMobile ? 5 : 4}>{heading}</Title>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {items.map((b) => (
                     <Paper key={b.grade} p="md" radius="md" withBorder>
                         <Stack gap="sm">
-                            <Group justify="space-between">
+                            <Group justify="space-between" wrap="wrap">
                                 <Text fw={600} size="sm">
                                     {gradeLabel(b.grade)}
                                 </Text>
@@ -383,14 +390,16 @@ function ProfessionPatternsBlock({
 }: {
     items: { profession: number; topItems: { name: string; count: number }[] }[];
 }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
+
     return (
         <Stack gap="md">
-            <Title order={4}>Паттерны по профессии</Title>
+            <Title order={isMobile ? 5 : 4}>Паттерны по профессии</Title>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {items.map((b) => (
                     <Paper key={b.profession} p="md" radius="md" withBorder>
                         <Stack gap="sm">
-                            <Group justify="space-between">
+                            <Group justify="space-between" wrap="wrap">
                                 <Text fw={600} size="sm">
                                     {professionLabel(b.profession)}
                                 </Text>
@@ -412,6 +421,8 @@ function ProfessionPatternsBlock({
 }
 
 function AdminSection({ admin }: { admin: AdminStatistics }) {
+    const isMobile = useMediaQuery("(max-width: 767px)");
+
     return (
         <Stack gap="xl">
             <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
@@ -430,7 +441,7 @@ function AdminSection({ admin }: { admin: AdminStatistics }) {
             </SimpleGrid>
 
             <Stack gap="md">
-                <Title order={4}>Все пользователи</Title>
+                <Title order={isMobile ? 5 : 4}>Все пользователи</Title>
                 <Text size="sm" c="dimmed">
                     Учитываются все завершённые сессии. Ниже — отдельно только сессии пользователей с
                     указанным в профиле грейдом или профессией.
@@ -476,6 +487,7 @@ export default function StatisticsPage() {
     const [data, setData] = useState<StatisticsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     useEffect(() => {
         let cancelled = false;
@@ -508,7 +520,7 @@ export default function StatisticsPage() {
         <Container size="md" style={{ width: "100%" }}>
             <Space h="xl" />
             <Stack gap="xl">
-                <Title order={2} c={mainColor}>
+                <Title order={isMobile ? 3 : 2} c={mainColor}>
                     Статистика
                 </Title>
                 <Text size="sm" c="dimmed">
@@ -532,7 +544,7 @@ export default function StatisticsPage() {
                     <>
                         {!isAdmin && (
                             <Stack gap="md">
-                                <Title order={3}>Ваши показатели</Title>
+                                <Title order={isMobile ? 4 : 3}>Ваши показатели</Title>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                                     <StatTile
                                         label="Всего сессий в сервисе"
