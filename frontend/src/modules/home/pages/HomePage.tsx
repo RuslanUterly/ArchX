@@ -1,6 +1,7 @@
 import { Button, Container, Group, Loader, Paper, Space, Stack, Text, Title } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import { useAuthStore } from "../../auth/store.ts";
 import { LastSessionDetails } from "../../results/components/LastSessionDetails.tsx";
@@ -21,6 +22,7 @@ export default function HomePage() {
     const latestLoading = useResultsStore((s) => s.latestLoading);
     const latestError = useResultsStore((s) => s.latestError);
     const loadLatest = useResultsStore((s) => s.loadLatest);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     useEffect(() => {
         if (!isUserRole) return;
@@ -35,7 +37,7 @@ export default function HomePage() {
 
                 <Paper p="lg" radius="md" withBorder>
                     <Stack gap="md">
-                        <Title order={2} c={mainColor}>
+                        <Title order={isMobile ? 3 : 2} c={mainColor}>
                             ArchX
                         </Title>
                         {
@@ -54,11 +56,16 @@ export default function HomePage() {
                                         Вы вошли как администратор. Управление контентом и аналитика — через
                                         разделы ниже.
                                     </Text>
-                                    <Group gap="sm">
+                                    <Group
+                                        gap="sm"
+                                        wrap="wrap"
+                                        style={{ width: isMobile ? "100%" : undefined }}
+                                    >
                                         <Button
                                             color={mainColor}
                                             variant="light"
                                             onClick={() => navigate("/statistics")}
+                                            fullWidth={Boolean(isMobile)}
                                         >
                                             Статистика
                                         </Button>
@@ -66,6 +73,7 @@ export default function HomePage() {
                                             color={mainColor}
                                             variant="light"
                                             onClick={() => navigate("/feedback")}
+                                            fullWidth={Boolean(isMobile)}
                                         >
                                             Обратная связь
                                         </Button>
@@ -73,6 +81,7 @@ export default function HomePage() {
                                             color={mainColor}
                                             variant="outline"
                                             onClick={() => navigate("/decision-tree/editor")}
+                                            fullWidth={Boolean(isMobile)}
                                         >
                                             Редактор деревьев
                                         </Button>
@@ -80,13 +89,14 @@ export default function HomePage() {
                                 </Stack>
                             ) : isAuthenticated ? (
                                 <>
-                                    <Group align="center" justify="space-between" w="100%">
+                                    <Group align="center" justify="space-between" w="100%" wrap="wrap">
                                         <Text size="sm" c="dimmed">
                                             Чтобы начать, нажмите кнопку →
                                         </Text>
                                         <Button 
                                             color={mainColor} 
                                             onClick={() => navigate("/decision-tree")}
+                                            fullWidth={Boolean(isMobile)}
                                         >
                                             Начать опрос
                                         </Button>
@@ -94,13 +104,14 @@ export default function HomePage() {
                                 </>
                             ) : (
                                 <>
-                                    <Group align="center" justify="space-between" w="100%">
+                                    <Group align="center" justify="space-between" w="100%" wrap="wrap">
                                         <Text size="sm" c="dimmed">
                                             Чтобы начать, нужно войти в аккаунт.
                                         </Text>
                                         <Button
                                             color={mainColor}
                                             onClick={() => navigate("/auth/login")}
+                                            fullWidth={Boolean(isMobile)}
                                         >
                                             Войти
                                         </Button>

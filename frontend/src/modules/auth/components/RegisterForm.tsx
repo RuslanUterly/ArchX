@@ -1,5 +1,6 @@
 import {Anchor, Button, Group, Select, Stack, Text, TextInput, Title} from '@mantine/core';
 import { useState } from 'react';
+import { useMediaQuery } from "@mantine/hooks";
 import { useRegister } from '../hooks';
 import {mainColor} from "../../../shared/components/theme/colors.ts";
 import {IconAt, IconBriefcase, IconChartBarPopular, IconLock} from "@tabler/icons-react";
@@ -9,6 +10,7 @@ import { GRADE_OPTIONS, USER_TYPE_OPTIONS } from '../labels';
 
 export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     const navigate = useNavigate();
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -35,7 +37,7 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     return (
         <form onSubmit={handleSubmit}>
             <Stack>
-                <Title order={2}>
+                <Title order={isMobile ? 3 : 2}>
                     Регистрация
                 </Title>
                 <TextInput
@@ -73,14 +75,20 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     searchable
                     nothingFoundMessage="Нет совпадений"
                 />
-                <Group justify="space-between" align="baseline">
+                <Group justify="space-between" align="baseline" wrap="wrap">
                     <Text mt="md">
                         Уже есть аккаунт?{' '}
                         <Anchor c={mainColor} component="button" type="button" onClick={() => navigate('/auth/login')}>
                             Войдите
                         </Anchor>
                     </Text>
-                    <Button type="submit" color={mainColor} loading={registerMutation.status === "pending"} disabled={!canSubmit}>
+                    <Button
+                        type="submit"
+                        color={mainColor}
+                        loading={registerMutation.status === "pending"}
+                        disabled={!canSubmit}
+                        fullWidth={Boolean(isMobile)}
+                    >
                         Регистрация
                     </Button>
                 </Group>    
