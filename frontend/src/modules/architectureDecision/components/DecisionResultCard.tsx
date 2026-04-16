@@ -92,7 +92,7 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
                         <Text fw={500}>Подходящие паттерны:</Text>
                         <Group gap="xs" wrap="wrap">
                             {result.patterns.map((pattern) => (
-                                <Badge key={pattern} color={mainColor} variant="light" size="lg">
+                                <Badge key={pattern} color={mainColor} variant="light" size="md">
                                     {pattern}
                                 </Badge>
                             ))}
