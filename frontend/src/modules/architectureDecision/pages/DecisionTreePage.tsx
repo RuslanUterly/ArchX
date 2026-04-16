@@ -1,4 +1,5 @@
 import { Container, Paper, Stack, Text, Title, Group, Button } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
 import { useDecisionTreeStore } from "../store.ts";
@@ -17,13 +18,14 @@ export default function DecisionTreePage() {
     const continueWithPatterns = useDecisionTreeStore((s) => s.continueWithPatterns);
     const reset = useDecisionTreeStore((s) => s.reset);
     const clearError = useDecisionTreeStore((s) => s.clearError);
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     return (
         <LayoutCenter>
-            <Container size="md">
-                <Paper p="lg" radius="md" withBorder>
+            <Container size="md" px={isMobile ? "xs" : "md"}>
+                <Paper p={isMobile ? "md" : "lg"} radius="md" withBorder>
                     <Stack gap="lg">
-                        <Title order={2} c={mainColor}>
+                        <Title order={isMobile ? 3 : 2} c={mainColor}>
                             Опросник по архитектурным решениям
                         </Title>
 
@@ -41,11 +43,15 @@ export default function DecisionTreePage() {
 
                         {session && (
                             <Stack gap="lg">
-                                <Group justify="space-between">
+                                <Group justify="space-between" align="center" wrap="wrap">
                                     <Text size="sm" c="dimmed">
                                         Проект: <b>{projectName}</b>
                                     </Text>
-                                    <Button variant="subtle" color="red" onClick={reset}>
+                                    <Button
+                                        variant="subtle"
+                                        color="red"
+                                        onClick={reset}
+                                    >
                                         Начать заново
                                     </Button>
                                 </Group>

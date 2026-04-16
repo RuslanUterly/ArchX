@@ -1,6 +1,8 @@
 import type { ResultNodeResponse } from "../api.ts";
-import { Button, Group, List, Stack, Text, ThemeIcon } from "@mantine/core";
+import { Badge, Button, Group, List, Stack, Text, ThemeIcon } from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
+import { useNavigate } from "react-router-dom";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 
 interface DecisionResultCardProps {
@@ -21,6 +23,8 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
         onContinueWithPatterns,
         loading,
     } = props;
+    const isMobile = useMediaQuery("(max-width: 767px)");
+    const navigate = useNavigate();
 
     if (!result) return null;
 
@@ -70,7 +74,7 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
                     </Stack>
                 )}
 
-                {result.patterns && result.patterns.length > 0 && (
+                {result.patterns && result.patterns.length > 0 && mode === "style" && (
                     <Stack gap={4}>
                         <Text fw={500}>
                             {mode === "style" ? "Рекомендуемые паттерны:" : "Подходящие паттерны:"}
@@ -82,18 +86,51 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
                         </List>
                     </Stack>
                 )}
+
+                {result.patterns && result.patterns.length > 0 && mode === "patterns" && (
+                    <Stack gap="xs">
+                        <Text fw={500}>Подходящие паттерны:</Text>
+                        <Group gap="xs" wrap="wrap">
+                            {result.patterns.map((pattern) => (
+                                <Badge key={pattern} color={mainColor} variant="light" size="lg">
+                                    {pattern}
+                                </Badge>
+                            ))}
+                        </Group>
+                    </Stack>
+                )}
             </Stack>
 
             {mode === "style" && canContinueWithPatterns && (
-                <Group mt="sm">
+                <Group mt="sm" wrap="wrap">
                     <Button
                         color={mainColor}
                         onClick={onContinueWithPatterns}
                         loading={loading}
+                        fullWidth={isMobile}
                     >
                         Продолжить с выбором паттернов
                     </Button>
+                    <Button
+                        variant="light"
+                        color={mainColor}
+                        onClick={() => navigate("/")}
+                        fullWidth={isMobile}
+                    >
+                        На главную
+                    </Button>
                 </Group>
+            )}
+
+            {mode === "patterns" && (
+                <Button
+                    color={mainColor}
+                    variant="light"
+                    onClick={() => navigate("/results")}
+                    fullWidth={isMobile}
+                >
+                    Подробнее
+                </Button>
             )}
         </Stack>
     );
