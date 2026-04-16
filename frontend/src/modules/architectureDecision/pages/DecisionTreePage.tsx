@@ -1,4 +1,4 @@
-import { Container, Paper, Stack, Text, Title, Group, Button } from "@mantine/core";
+import { Container, Paper, Stack, Text, Title, Space, Group, Button } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 import LayoutCenter from "../../../shared/components/layout/LayoutCenter.tsx";
@@ -91,6 +91,7 @@ export default function DecisionTreePage() {
                         )}
                     </Stack>
                 </Paper>
+                <Space h="md" />
             </Container>
         </LayoutCenter>
     );
