@@ -24,6 +24,8 @@ export interface DecisionState {
     result: ResultNodeResponse | null;
     canContinueWithPatterns: boolean;
     mode: "style" | "patterns";
+    selectedArchitectureStyle: string | null;
+    selectedArchitectureDescription: string | null;
 }
 
 interface DecisionTreeStore {
@@ -71,6 +73,8 @@ const mapSessionToState = (
     mode:
         prev?.mode ??
         (session.treeType === TreeType.ArchitectureStyle ? "style" : "patterns"),
+    selectedArchitectureStyle: prev?.selectedArchitectureStyle ?? null,
+    selectedArchitectureDescription: prev?.selectedArchitectureDescription ?? null,
 });
 
 export const useDecisionTreeStore = create<DecisionTreeStore>((set, get) => ({
@@ -124,6 +128,8 @@ export const useDecisionTreeStore = create<DecisionTreeStore>((set, get) => ({
                     result: session.result ?? null,
                     canContinueWithPatterns: false,
                     mode: "style",
+                    selectedArchitectureStyle: null,
+                    selectedArchitectureDescription: null,
                 }),
             });
         } catch (e) {
@@ -159,6 +165,14 @@ export const useDecisionTreeStore = create<DecisionTreeStore>((set, get) => ({
                         options: [],
                         result,
                         canContinueWithPatterns: response.canContinueWithPatterns,
+                        selectedArchitectureStyle:
+                            session.mode === "style"
+                                ? response.architectureStyle?.trim() || null
+                                : session.selectedArchitectureStyle,
+                        selectedArchitectureDescription:
+                            session.mode === "style"
+                                ? response.description?.trim() || null
+                                : session.selectedArchitectureDescription,
                     },
                 });
             } else {

@@ -19,6 +19,10 @@ export default function DecisionTreePage() {
     const reset = useDecisionTreeStore((s) => s.reset);
     const clearError = useDecisionTreeStore((s) => s.clearError);
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const selectedArchitectureStyle = useDecisionTreeStore((s) => s.session?.selectedArchitectureStyle ?? null);
+    const selectedArchitectureDescription = useDecisionTreeStore(
+        (s) => s.session?.selectedArchitectureDescription ?? null,
+    );
 
     return (
         <LayoutCenter>
@@ -73,6 +77,8 @@ export default function DecisionTreePage() {
                                         canContinueWithPatterns={session.canContinueWithPatterns}
                                         onContinueWithPatterns={continueWithPatterns}
                                         loading={loading}
+                                        selectedArchitectureStyle={selectedArchitectureStyle}
+                                        selectedArchitectureDescription={selectedArchitectureDescription}
                                     />
                                 )}
                             </Stack>

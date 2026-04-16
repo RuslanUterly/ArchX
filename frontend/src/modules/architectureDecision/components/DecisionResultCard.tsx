@@ -12,6 +12,8 @@ interface DecisionResultCardProps {
     canContinueWithPatterns: boolean;
     onContinueWithPatterns: () => void;
     loading: boolean;
+    selectedArchitectureStyle?: string | null;
+    selectedArchitectureDescription?: string | null;
 }
 
 export default function DecisionResultCard(props: DecisionResultCardProps) {
@@ -22,11 +24,23 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
         canContinueWithPatterns,
         onContinueWithPatterns,
         loading,
+        selectedArchitectureStyle,
+        selectedArchitectureDescription,
     } = props;
     const isMobile = useMediaQuery("(max-width: 767px)");
     const navigate = useNavigate();
 
     if (!result) return null;
+    const rawArchitectureStyle = result.architectureStyle?.trim() ?? null;
+    const selectedStyle = selectedArchitectureStyle?.trim() || null;
+    const selectedDescription = selectedArchitectureDescription?.trim() || null;
+
+    const displayArchitectureStyle =
+        mode === "patterns" ? selectedStyle || rawArchitectureStyle : rawArchitectureStyle || selectedStyle;
+    const displayDescription =
+        mode === "patterns"
+            ? selectedDescription || result.description?.trim() || null
+            : result.description?.trim() || selectedDescription;
 
     return (
         <Stack gap="md">
@@ -35,13 +49,13 @@ export default function DecisionResultCard(props: DecisionResultCardProps) {
             </Text>
 
             <Stack gap="sm">
-                {result.architectureStyle && (
+                {displayArchitectureStyle && (
                     <Text fw={600} size="lg">
-                        Рекомендуемый стиль: {result.architectureStyle}
+                        Рекомендуемый стиль: {displayArchitectureStyle}
                     </Text>
                 )}
 
-                {result.description && <Text>{result.description}</Text>}
+                {displayDescription && <Text>{displayDescription}</Text>}
 
                 {result.pros && result.pros.length > 0 && (
                     <Stack gap={4}>
