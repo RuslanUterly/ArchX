@@ -23,11 +23,6 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    SeedData.Initialize(scope.ServiceProvider);
-}
-
 //if (app.Environment.IsDevelopment())
 //{
 //    app.MapOpenApi();
