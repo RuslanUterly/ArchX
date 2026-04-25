@@ -50,6 +50,9 @@ services:
     image: caddy:2.10-alpine
     container_name: archx-caddy
     restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
     depends_on:
       - frontend
       - api
