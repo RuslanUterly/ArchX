@@ -34,8 +34,11 @@ public class AuthService(
         if (!Enum.IsDefined(typeof(UserType), request.UserType))
             throw new BadRequestException("Укажите корректную должность");
 
+        if (!Enum.IsDefined(typeof(Grade), request.Grade))
+            throw new BadRequestException("Укажите корректный грейд");
+
         if (await userManager.FindByEmailAsync(request.Email) is not null)
-            throw new NotFoundException("Пользователь уже зарегистрирован");
+            throw new BadRequestException("Пользователь уже зарегистрирован");
 
         var user = new User()
         {
