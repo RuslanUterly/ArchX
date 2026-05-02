@@ -110,7 +110,7 @@ export default function StatisticsMiniBlock() {
         <>
             <Stack gap="sm">
                 <Group justify="space-between" align="flex-start" wrap="wrap">
-                    <Title order={isMobile ? 4 : 3} fw={600} c={mainColor}>
+                    <Title order={isMobile ? 4 : 3} c={mainColor}>
                         Статистика
                     </Title>
                     {isAuthenticated && (
