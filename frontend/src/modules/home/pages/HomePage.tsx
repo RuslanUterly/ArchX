@@ -53,7 +53,16 @@ export default function HomePage() {
             <Stack gap="lg">
                 <StatisticsMiniBlock />
 
-                <Paper p="lg" radius="md" withBorder>
+                <Paper
+                    p="lg"
+                    radius="md"
+                    withBorder
+                    style={{
+                        borderWidth: 1,
+                        borderColor: mainColor,
+                        boxShadow: `0 0 18px -4px ${mainColor}`,
+                    }}
+                >
                     <Stack gap="md">
                         <Title order={isMobile ? 3 : 2} c={mainColor}>
                             ArchX
