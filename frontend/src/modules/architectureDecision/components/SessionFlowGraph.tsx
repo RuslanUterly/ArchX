@@ -62,12 +62,13 @@ function buildGraph(
     for (let i = 0; i < chain.length - 1; i += 1) {
         const source = chain[i];
         const target = chain[i + 1];
-        dagreGraph.setEdge(source.id, target.id, { label: target.answer ?? "—" });
+        const edgeAnswer = source.answer ?? target.answer ?? "—";
+        dagreGraph.setEdge(source.id, target.id, { label: edgeAnswer });
         edges.push({
             id: `${source.id}-${target.id}`,
             source: source.id,
             target: target.id,
-            label: target.answer ?? "—",
+            label: edgeAnswer,
             style: { strokeWidth: 1.5, stroke: accentColor },
             labelStyle: { fontSize: 11, fill: accentColor },
         });
