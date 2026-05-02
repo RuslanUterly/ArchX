@@ -28,4 +28,24 @@ jobs:
             git checkout "${{ github.ref_name }}"
             git pull origin "${{ github.ref_name }}"
 
-            docker compose up -d --build
+            max_attempts=5
+            attempt=1
+            delay=10
+
+            while [ $attempt -le $max_attempts ]; do
+              echo "Deploy attempt $attempt/$max_attempts"
+              if docker compose up -d --build; then
+                echo "Deploy succeeded"
+                break
+              fi
+
+              if [ $attempt -eq $max_attempts ]; then
+                echo "Deploy failed after $max_attempts attempts"
+                exit 1
+              fi
+
+              echo "Transient failure. Retrying in ${delay}s..."
+              sleep $delay
+              attempt=$((attempt + 1))
+              delay=$((delay * 2))
+            done
