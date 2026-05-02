@@ -58,7 +58,8 @@ export default function AdminFeedbackModal({
             setTicket(updated);
             setStatus(String(updated.status));
             setResponseText(updated.adminReply?.message ?? "");
-            await onSaved();
+            onClose();
+            void onSaved();
         } catch (e) {
             setSaveErr(e instanceof Error ? e.message : "Ошибка сохранения");
         } finally {
