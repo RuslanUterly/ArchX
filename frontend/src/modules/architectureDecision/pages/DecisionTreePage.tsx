@@ -26,8 +26,8 @@ export default function DecisionTreePage() {
 
     return (
         <LayoutCenter>
-            <Container size="md" px={isMobile ? "xs" : "md"}>
-                <Paper p={isMobile ? "md" : "lg"} radius="md" withBorder>
+            <Container size="md" w="100%" px={isMobile ? "xs" : "md"}>
+                <Paper p={isMobile ? "md" : "lg"} radius="md" withBorder w="100%">
                     <Stack gap="lg">
                         <Title order={isMobile ? 3 : 2} c={mainColor}>
                             Опросник по архитектурным решениям
