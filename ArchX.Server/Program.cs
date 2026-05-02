@@ -50,6 +50,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapDefaultEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

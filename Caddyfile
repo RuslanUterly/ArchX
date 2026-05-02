@@ -2,7 +2,12 @@
     encode zstd gzip
 
     handle /api/* {
-        reverse_proxy api:8080
+        reverse_proxy api:8080 {
+            health_uri /health
+            health_interval 5s
+            health_timeout 2s
+            fail_duration 10s
+        }
     }
 
     reverse_proxy frontend:80
