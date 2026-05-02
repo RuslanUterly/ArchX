@@ -1,5 +1,6 @@
 import { Button, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { useMemo } from "react";
 import { mainColor } from "../../../shared/components/theme/colors.ts";
 
 interface DecisionQuestionCardProps {
@@ -14,6 +15,13 @@ export default function DecisionQuestionCard(props: DecisionQuestionCardProps) {
     const { question, description, options, onAnswer, loading } = props;
     const desc = description?.trim();
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const sortedOptions = useMemo(
+        () =>
+            [...options].sort((a, b) =>
+                a.localeCompare(b, "ru", { sensitivity: "base", numeric: true }),
+            ),
+        [options],
+    );
 
     return (
         <Stack gap="md">
@@ -27,7 +35,7 @@ export default function DecisionQuestionCard(props: DecisionQuestionCardProps) {
             </Stack>
 
             <Stack gap="xs">
-                {options.map((option) => (
+                {sortedOptions.map((option) => (
                     <Button
                         key={option}
                         variant="outline"
