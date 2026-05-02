@@ -132,7 +132,7 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && isAuthenticated && isAdmin && adminOverview && (
-                    <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="sm">
+                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
                         <StatCell label="Всего сессий" value={adminOverview.totalSessions} />
                         <StatCell label="Пользователей" value={adminOverview.registeredUsers} />
                         <StatCell
@@ -144,14 +144,14 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && isAuthenticated && !isAdmin && authData && (
-                    <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="sm">
+                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
                         <StatCell
                             label="Сессий в сервисе"
                             value={authData.personal.globalTotalSessions}
                         />
                         <StatCell label="Ваших сессий" value={authData.personal.myTotalSessions} />
                         <StatCell
-                            label="Завершено вами"
+                            label="Завершенных сессий"
                             value={authData.personal.myCompletedSessions}
                         />
                         <StatCell
@@ -162,7 +162,7 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && !isAuthenticated && publicData && (
-                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+                    <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm">
                         <StatCell label="Всего сессий" value={publicData.totalSessions} />
                         <StatCell label="Пользователей" value={publicData.registeredUsers} />
                     </SimpleGrid>
