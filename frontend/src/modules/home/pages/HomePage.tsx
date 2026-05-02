@@ -151,97 +151,93 @@ export default function HomePage() {
 
                 {!isAuthenticated && (
                     <>
-                        {/* <Paper p="lg" radius="md" withBorder> */}
-                            <Stack gap="md">
-                                <Title order={isMobile ? 4 : 3}>Что вы получите в ArchX</Title>
-                                <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap="xs">
-                                            <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
-                                                <IconRouteSquare size={18} />
-                                            </ThemeIcon>
-                                            <Text fw={600}>Рекомендация по паттернам</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Подбираем архитектурный стиль и паттерны под ваш сценарий.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap="xs">
-                                            <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
-                                                <IconChecklist size={18} />
-                                            </ThemeIcon>
-                                            <Text fw={600}>Быстрый сценарий вопросов</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Короткий динамический опрос без лишних шагов и сложной настройки.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap="xs">
-                                            <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
-                                                <IconDeviceAnalytics size={18} />
-                                            </ThemeIcon>
-                                            <Text fw={600}>Прозрачный результат</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Получайте обоснованный итог и храните историю результатов в одном месте.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                </SimpleGrid>
-                            </Stack>
-                        {/* </Paper> */}
+                        <Stack gap="md">
+                            <Title order={isMobile ? 4 : 3} c={mainColor}>Что вы получите в ArchX</Title>
+                            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap="xs">
+                                        <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
+                                            <IconRouteSquare size={18} />
+                                        </ThemeIcon>
+                                        <Text fw={600}>Рекомендация по паттернам</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Подбираем архитектурный стиль и паттерны под ваш сценарий.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap="xs">
+                                        <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
+                                            <IconChecklist size={18} />
+                                        </ThemeIcon>
+                                        <Text fw={600}>Быстрый сценарий вопросов</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Короткий динамический опрос без лишних шагов и сложной настройки.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap="xs">
+                                        <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
+                                            <IconDeviceAnalytics size={18} />
+                                        </ThemeIcon>
+                                        <Text fw={600}>Прозрачный результат</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Получайте обоснованный итог и храните историю результатов в одном месте.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                            </SimpleGrid>
+                        </Stack>
 
-                        {/* <Paper p="lg" radius="md" withBorder> */}
-                            <Stack gap="md">
-                                <Group justify="space-between" align="center" wrap="wrap">
-                                    <Title order={isMobile ? 4 : 3}>Как это работает</Title>
-                                    <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
-                                        <IconSparkles size={18} />
-                                    </ThemeIcon>
-                                </Group>
-                                <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap={4}>
-                                            <Text fw={700} c={mainColor}>
-                                                1
-                                            </Text>
-                                            <Text fw={600}>Вход или регистрация</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Создайте аккаунт, чтобы сохранять результаты и продолжать работу позже.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap={4}>
-                                            <Text fw={700} c={mainColor}>
-                                                2
-                                            </Text>
-                                            <Text fw={600}>Ответы на вопросы</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Пройдите короткий опрос: каждое следующее поле зависит от ваших ответов.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                    <Paper p="md" radius="md" withBorder>
-                                        <Stack gap={4}>
-                                            <Text fw={700} c={mainColor}>
-                                                3
-                                            </Text>
-                                            <Text fw={600}>Готовая рекомендация</Text>
-                                            <Text size="sm" c="dimmed">
-                                                Получите результат и вернитесь к нему в любой момент из истории.
-                                            </Text>
-                                        </Stack>
-                                    </Paper>
-                                </SimpleGrid>
-                                <Group justify="space-between" align="center" wrap="wrap">
-                                    <Text size="sm" c="dimmed">
-                                        Уже есть аккаунт? Войдите и начните первую сессию.
-                                    </Text>
-                                </Group>
-                            </Stack>
-                        {/* </Paper> */}
+                        <Stack gap="md">
+                            <Group justify="space-between" align="center" wrap="wrap">
+                                <Title order={isMobile ? 4 : 3} c={mainColor}>Как это работает</Title>
+                                <ThemeIcon size={34} radius="xl" color={mainColor} variant="light">
+                                    <IconSparkles size={18} />
+                                </ThemeIcon>
+                            </Group>
+                            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap={4}>
+                                        <Text fw={700} c={mainColor}>
+                                            1
+                                        </Text>
+                                        <Text fw={600}>Вход или регистрация</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Создайте аккаунт, чтобы сохранять результаты и продолжать работу позже.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap={4}>
+                                        <Text fw={700} c={mainColor}>
+                                            2
+                                        </Text>
+                                        <Text fw={600}>Ответы на вопросы</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Пройдите короткий опрос: каждое следующее поле зависит от ваших ответов.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                                <Paper p="md" radius="md" withBorder>
+                                    <Stack gap={4}>
+                                        <Text fw={700} c={mainColor}>
+                                            3
+                                        </Text>
+                                        <Text fw={600}>Готовая рекомендация</Text>
+                                        <Text size="sm" c="dimmed">
+                                            Получите результат и вернитесь к нему в любой момент из истории.
+                                        </Text>
+                                    </Stack>
+                                </Paper>
+                            </SimpleGrid>
+                            <Group justify="space-between" align="center" wrap="wrap">
+                                <Text size="sm" c="dimmed">
+                                    Уже есть аккаунт? Войдите и начните первую сессию.
+                                </Text>
+                            </Group>
+                        </Stack>
                     </>
                 )}
 

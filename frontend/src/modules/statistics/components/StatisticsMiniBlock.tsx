@@ -4,6 +4,7 @@ import {
     Loader,
     Paper,
     SimpleGrid,
+    Title,
     Stack,
     Text,
 } from "@mantine/core";
@@ -17,6 +18,7 @@ import {
     type PublicStatistics,
     type StatisticsResponse,
 } from "../api.ts";
+import { useMediaQuery } from "@mantine/hooks";
 
 interface AdminOverviewMini {
     totalSessions: number;
@@ -27,18 +29,25 @@ interface AdminOverviewMini {
 
 function StatCell({ label, value }: { label: string; value: number | string }) {
     return (
-        <Stack gap={2}>
-            <Text size="xs" c="dimmed" lh={1.3}>
-                {label}
-            </Text>
-            <Text fw={600} size="lg" c={mainColor}>
-                {value}
-            </Text>
-        </Stack>
+        <Paper p="md" radius="md" withBorder>
+            <Stack gap={4}>
+                <Text size="sm" c="dimmed" lh={1.3}>
+                    {label}
+                </Text>
+                <Title
+                    fw={700}
+                    c={mainColor}
+                    order={3} 
+                >
+                    {value}
+                </Title>
+            </Stack>
+        </Paper>
     );
 }
 
 export default function StatisticsMiniBlock() {
+    const isMobile = useMediaQuery("(max-width: 767px)");
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const roles = useAuthStore((s) => s.roles);
     const isAdmin = useMemo(
@@ -98,12 +107,12 @@ export default function StatisticsMiniBlock() {
     }, [isAuthenticated, isAdmin]);
 
     return (
-        <Paper p="md" radius="md" withBorder>
+        <>
             <Stack gap="sm">
                 <Group justify="space-between" align="flex-start" wrap="wrap">
-                    <Text fw={600} c={mainColor}>
+                    <Title order={isMobile ? 4 : 3} fw={600} c={mainColor}>
                         Статистика
-                    </Text>
+                    </Title>
                     {isAuthenticated && (
                         <Anchor component={Link} to="/statistics" size="sm" c={mainColor}>
                             Подробнее
@@ -123,7 +132,7 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && isAuthenticated && isAdmin && adminOverview && (
-                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="sm">
                         <StatCell label="Всего сессий" value={adminOverview.totalSessions} />
                         <StatCell label="Пользователей" value={adminOverview.registeredUsers} />
                         <StatCell
@@ -135,7 +144,7 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && isAuthenticated && !isAdmin && authData && (
-                    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="sm">
                         <StatCell
                             label="Сессий в сервисе"
                             value={authData.personal.globalTotalSessions}
@@ -153,12 +162,12 @@ export default function StatisticsMiniBlock() {
                 )}
 
                 {!loading && !error && !isAuthenticated && publicData && (
-                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
                         <StatCell label="Всего сессий" value={publicData.totalSessions} />
                         <StatCell label="Пользователей" value={publicData.registeredUsers} />
                     </SimpleGrid>
                 )}
             </Stack>
-        </Paper>
+        </>
     );
 }
