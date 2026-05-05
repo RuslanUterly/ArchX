@@ -1,4 +1,5 @@
 import { baseUrl } from "../../shared/api/options.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 import { useAuthStore } from "../auth/store.ts";
 import type { Grade, UserType } from "../auth/types.ts";
 
@@ -21,10 +22,7 @@ export const fetchProfile = async (): Promise<ProfileDto> => {
         method: "GET",
         headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось загрузить профиль");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить профиль");
     return res.json();
 };
 
@@ -40,9 +38,6 @@ export const updateProfile = async (payload: {
         },
         body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось сохранить профиль");
-    }
+    await throwIfResponseNotOk(res, "Не удалось сохранить профиль");
     return res.json();
 };

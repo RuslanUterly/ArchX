@@ -13,6 +13,11 @@ public class GlobalExceptionHandler(
         Exception exception, 
         CancellationToken cancellationToken)
     {
+        if (exception is not DomainException)
+        {
+            logger.LogError(exception, "Unhandled exception for request {Path}", httpContext.Request.Path);
+        }
+
         var problemDetails = ExceptionDetailsHelper.GetExceptionDetails(exception);
 
         httpContext.Response.StatusCode = problemDetails.Status!.Value;

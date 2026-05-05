@@ -1,4 +1,5 @@
 import { baseUrl } from "../../shared/api/options.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 import { useAuthStore } from "../auth/store.ts";
 import type { QueryParameter } from "../architectureDecision/api.ts";
 
@@ -66,10 +67,7 @@ export const createFeedback = async (payload: {
         },
         body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось отправить обращение");
-    }
+    await throwIfResponseNotOk(res, "Не удалось отправить обращение");
     return res.json();
 };
 
@@ -78,10 +76,7 @@ export const getFeedbackById = async (id: number): Promise<FeedbackTicketDto> =>
         method: "GET",
         headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось загрузить обращение");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить обращение");
     return res.json();
 };
 
@@ -94,10 +89,7 @@ export const queryFeedback = async (query: QueryParameter): Promise<PagedFeedbac
         },
         body: JSON.stringify(query),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось загрузить обращения");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить обращения");
     return res.json();
 };
 
@@ -113,9 +105,6 @@ export const updateFeedbackAdmin = async (
         },
         body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось сохранить ответ");
-    }
+    await throwIfResponseNotOk(res, "Не удалось сохранить ответ");
     return res.json();
 };

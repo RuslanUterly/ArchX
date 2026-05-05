@@ -1,4 +1,5 @@
 import { baseUrl } from "../../shared/api/options.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 import { useAuthStore } from "../auth/store.ts";
 
 const BASE_URL = `${baseUrl}/api/v1/Statistics`;
@@ -63,18 +64,12 @@ export interface StatisticsResponse {
 
 export async function getPublicStatistics(): Promise<PublicStatistics> {
     const res = await fetch(`${BASE_URL}/public`);
-    if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || "Не удалось загрузить статистику");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить статистику");
     return res.json();
 }
 
 export async function getStatistics(): Promise<StatisticsResponse> {
     const res = await fetch(BASE_URL, { headers: getAuthHeaders() });
-    if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || "Не удалось загрузить статистику");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить статистику");
     return res.json();
 }

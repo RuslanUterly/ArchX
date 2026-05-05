@@ -50,7 +50,7 @@ public class UnauthorizedException : DomainException
 
 public class NotFoundException : DomainException
 {
-    public override int StatusCode => StatusCodes.Status401Unauthorized;
+    public override int StatusCode => StatusCodes.Status404NotFound;
     public override string Title => "Не найден";
 
     public NotFoundException(string message) : base(message) { }

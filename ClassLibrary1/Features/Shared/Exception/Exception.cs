@@ -10,8 +10,8 @@ public abstract class DomainException : Exception
 
 public class BadRequestException : DomainException
 {
-    public override int StatusCode => StatusCodes.Status401Unauthorized;
-    public override string Title => "Ошибка авторизации";
+    public override int StatusCode => StatusCodes.Status400BadRequest;
+    public override string Title => "Некорректный запрос";
 
     public string? Code { get; }
     public IDictionary<string, string[]>? Errors { get; }
@@ -50,7 +50,7 @@ public class UnauthorizedException : DomainException
 
 public class NotFoundException : DomainException
 {
-    public override int StatusCode => StatusCodes.Status401Unauthorized;
+    public override int StatusCode => StatusCodes.Status404NotFound;
     public override string Title => "Не найден";
 
     public NotFoundException(string message) : base(message) { }

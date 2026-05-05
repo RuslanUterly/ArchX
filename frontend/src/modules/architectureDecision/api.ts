@@ -1,5 +1,6 @@
 import { baseUrl } from "../../shared/api/options.ts";
 import { useAuthStore } from "../auth/store.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 
 export const TreeType = {
     ArchitectureStyle: 1,
@@ -83,10 +84,7 @@ export const startSession = async (
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось начать сессию");
-    }
+    await throwIfResponseNotOk(res, "Не удалось начать сессию");
 
     return res.json();
 };
@@ -104,10 +102,7 @@ export const postAnswer = async (
         body: JSON.stringify({ answer }),
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось отправить ответ");
-    }
+    await throwIfResponseNotOk(res, "Не удалось отправить ответ");
 
     return res.json();
 };
@@ -123,10 +118,7 @@ export const continueWithPatterns = async (
         },
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось продолжить с паттернами");
-    }
+    await throwIfResponseNotOk(res, "Не удалось продолжить с паттернами");
 
     return res.json();
 };
@@ -177,10 +169,7 @@ export const getSessions = async (
         },
         body: JSON.stringify(query),
     });
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось загрузить сессии");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить сессии");
     return res.json();
 };
 
@@ -191,10 +180,7 @@ export const getSession = async (
         method: "GET",
         headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Сессия не найдена");
-    }
+    await throwIfResponseNotOk(res, "Сессия не найдена");
     return res.json();
 };
 
@@ -211,10 +197,7 @@ export const setSessionHiddenState = async (
         body: JSON.stringify({ isHidden }),
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось изменить видимость сессии");
-    }
+    await throwIfResponseNotOk(res, "Не удалось изменить видимость сессии");
 };
 
 // --- Дерево сессии (объединённое: стили + паттерны) ---
@@ -247,10 +230,7 @@ export const getCombinedSessionTree = async (
         method: "GET",
         headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Не удалось загрузить дерево сессии");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить дерево сессии");
     return res.json();
 };
 

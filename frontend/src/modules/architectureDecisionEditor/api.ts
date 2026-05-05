@@ -1,4 +1,5 @@
 import { baseUrl } from "../../shared/api/options.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 import type { TreeTypeValue } from "../architectureDecision/api.ts";
 import { TreeType } from "../architectureDecision/api.ts";
 import { useAuthStore } from "../auth/store.ts";
@@ -81,10 +82,7 @@ export const getTreeHierarchy = async (
         },
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось загрузить дерево");
-    }
+    await throwIfResponseNotOk(res, "Не удалось загрузить дерево");
 
     type RawNodeRequest = {
         id: number | null;
@@ -162,10 +160,7 @@ export const insertNode = async (payload: InsertNodeRequest) => {
         }),
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось вставить узел");
-    }
+    await throwIfResponseNotOk(res, "Не удалось вставить узел");
 
     return res.json();
 };
@@ -192,10 +187,7 @@ export const insertBranch = async (
         },
     );
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось добавить ветку");
-    }
+    await throwIfResponseNotOk(res, "Не удалось добавить ветку");
 
     return res.json();
 };
@@ -210,10 +202,7 @@ export const updateNode = async (nodeId: number, payload: NodeRequest) => {
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось обновить узел");
-    }
+    await throwIfResponseNotOk(res, "Не удалось обновить узел");
 
     return res.json();
 };
@@ -229,10 +218,7 @@ export const deleteNode = async (nodeId: number, cascade: boolean = true) => {
         },
     );
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось удалить узел");
-    }
+    await throwIfResponseNotOk(res, "Не удалось удалить узел");
 };
 
 export const addLink = async (payload: LinkRequest) => {
@@ -245,10 +231,7 @@ export const addLink = async (payload: LinkRequest) => {
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось добавить связь");
-    }
+    await throwIfResponseNotOk(res, "Не удалось добавить связь");
 
     return res.json();
 };
@@ -263,10 +246,7 @@ export const updateLink = async (linkId: number, payload: UpdateLinkRequest) => 
         body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось обновить связь");
-    }
+    await throwIfResponseNotOk(res, "Не удалось обновить связь");
 
     return res.json();
 };
@@ -279,9 +259,6 @@ export const deleteLink = async (linkId: number) => {
         },
     });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Не удалось удалить связь");
-    }
+    await throwIfResponseNotOk(res, "Не удалось удалить связь");
 };
 

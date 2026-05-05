@@ -1,4 +1,5 @@
 using ArchX.Server.Entities;
+using ArchX.Server.Features.Shared.Exteptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +33,7 @@ public class DecisionTreeEditorController(DecisionTreeEditorService editorServic
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -49,7 +50,7 @@ public class DecisionTreeEditorController(DecisionTreeEditorService editorServic
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -101,7 +102,7 @@ public class DecisionTreeEditorController(DecisionTreeEditorService editorServic
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -118,7 +119,7 @@ public class DecisionTreeEditorController(DecisionTreeEditorService editorServic
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -135,7 +136,7 @@ public class DecisionTreeEditorController(DecisionTreeEditorService editorServic
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            throw new BadRequestException(ex.Message);
         }
     }
 

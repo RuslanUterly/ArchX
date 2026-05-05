@@ -1,5 +1,6 @@
 import type {Credentials, LoginResponse, RegisterData, RegisterResponse} from './types';
 import {baseUrl} from "../../shared/api/options.ts";
+import { throwIfResponseNotOk } from "../../shared/api/httpError.ts";
 
 const BASE_URL = baseUrl + '/api/v1/auth';
 
@@ -10,10 +11,7 @@ export const login = async (data: Credentials): Promise<LoginResponse> => {
         body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Login failed');
-    }
+    await throwIfResponseNotOk(res, "Не удалось выполнить вход");
 
     const token = await res.text();
     return { accessToken: token };
@@ -26,10 +24,7 @@ export const register = async (data: RegisterData): Promise<RegisterResponse> =>
         body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Register failed');
-    }
+    await throwIfResponseNotOk(res, "Не удалось зарегистрироваться");
 
     const message = await res.text();
     return { message: message };
