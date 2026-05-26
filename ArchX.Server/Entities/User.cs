@@ -17,8 +17,7 @@ public enum UserType
     FullstackDeveloper,
     DevOps,
     SystemsAnalyst,
-    Student,
-    Other
+    Other = 8
 }
 
 public enum Grade

@@ -11,7 +11,6 @@ export const UserType = {
     FullstackDeveloper: 4,
     DevOps: 5,
     SystemsAnalyst: 6,
-    Student: 7,
     Other: 8,
 } as const;
 

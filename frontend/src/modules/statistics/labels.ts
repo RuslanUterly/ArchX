@@ -9,12 +9,11 @@ const gradeLabels: Record<number, string> = {
 /** Подписи совпадают с `ArchX.Server.Entities.UserType` (значения 1–8). */
 const professionLabels: Record<number, string> = {
     1: "Архитектор ПО",
-    2: "Тимлид / ведущий разработчик",
+    2: "Ведущий разработчик",
     3: "Backend-разработчик",
     4: "Fullstack-разработчик",
     5: "DevOps / SRE",
     6: "Системный аналитик",
-    7: "Студент",
     8: "Другое",
 };
 

@@ -31,7 +31,7 @@ public class AuthService(
 
     public async Task<long> RegisterAsync(RegisterRequestDto request)
     {
-        if (!Enum.IsDefined(typeof(UserType), request.UserType))
+        if (!IsSelectableUserType(request.UserType))
             throw new BadRequestException("Укажите корректную должность");
 
         if (await userManager.FindByEmailAsync(request.Email) is not null)
@@ -55,6 +55,9 @@ public class AuthService(
 
         return user.Id;
     }
+
+    private static bool IsSelectableUserType(UserType userType) =>
+        Enum.IsDefined(typeof(UserType), userType);
 
     public async Task<IList<string>> GetUserRolesAsync(ClaimsPrincipal user)
     {

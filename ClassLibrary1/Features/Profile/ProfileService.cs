@@ -18,7 +18,7 @@ public class ProfileService(UserManager<User> userManager)
 
     public async Task<ProfileResponse> UpdateAsync(long userId, UpdateProfileRequest request)
     {
-        if (!Enum.IsDefined(typeof(UserType), request.UserType))
+        if (!IsSelectableUserType(request.UserType))
             throw new BadRequestException("Укажите корректную должность");
 
         if (!Enum.IsDefined(typeof(Grade), request.Grade))
@@ -39,4 +39,7 @@ public class ProfileService(UserManager<User> userManager)
 
         return new ProfileResponse(user.Email ?? string.Empty, user.UserType, user.Grade);
     }
+
+    private static bool IsSelectableUserType(UserType userType) =>
+        Enum.IsDefined(typeof(UserType), userType);
 }
