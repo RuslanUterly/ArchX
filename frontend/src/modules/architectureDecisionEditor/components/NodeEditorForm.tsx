@@ -83,9 +83,9 @@ export default function NodeEditorForm() {
                 const id = n.id as number;
                 const label =
                     n.type === "Result"
-                        ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат #${id}`)
-                        : (n.questionText?.trim() || `Вопрос #${id}`);
-                return { value: String(id), label: `#${id} — ${label}` };
+                        ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат №${id}`)
+                        : (n.questionText?.trim() || `Вопрос №${id}`);
+                return { value: String(id), label: `№${id} — ${label}` };
             })
             .sort((a, b) => a.label.localeCompare(b.label, "ru"));
     }, [nodes, selectedNodeId]);
@@ -120,12 +120,12 @@ export default function NodeEditorForm() {
 
     const childLinkCaption = (childId: number) => {
         const n = nodes[childId];
-        if (!n) return `→ узел #${childId}`;
+        if (!n) return `→ узел №${childId}`;
         const label =
             n.type === "Result"
-                ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат #${childId}`)
-                : (n.questionText?.trim() || `Вопрос #${childId}`);
-        return `→ #${childId} — ${label}`;
+                ? (n.architectureStyle?.trim() || n.description?.trim() || `Результат №${childId}`)
+                : (n.questionText?.trim() || `Вопрос №${childId}`);
+        return `→ №${childId} — ${label}`;
     };
 
     return (

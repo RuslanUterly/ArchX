@@ -29,7 +29,7 @@ export default function UserFeedbackCard({ ticket }: { ticket: FeedbackTicketDto
                         state={buildSessionRouteState(location.pathname)}
                         c="dimmed"
                     >
-                        #{ticket.sessionId}
+                        №{ticket.sessionId}
                         {ticket.sessionProjectName ? ` · ${ticket.sessionProjectName}` : ""}
                     </Anchor>
                 </Text>

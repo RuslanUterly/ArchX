@@ -96,7 +96,7 @@ export default function AdminFeedbackModal({
                             state={buildSessionRouteState(location.pathname)}
                             c="dimmed"
                         >
-                            #{ticket.sessionId}
+                            №{ticket.sessionId}
                             {ticket.sessionProjectName ? ` · ${ticket.sessionProjectName}` : ""}
                         </Anchor>
                     </Text>

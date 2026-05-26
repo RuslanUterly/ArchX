@@ -281,7 +281,7 @@ export default function SessionDetailPage() {
                                     {backTarget.label}
                                 </Anchor>
                                 <Text size="sm" c="dimmed">
-                                    #{sessionId}
+                                    №{sessionId}
                                 </Text>
                             </Breadcrumbs>
                             <Button variant="light" size="sm" color={mainColor} onClick={handleGoBack}>

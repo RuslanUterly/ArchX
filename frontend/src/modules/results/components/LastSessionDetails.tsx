@@ -83,7 +83,7 @@ export function LastSessionDetails({
                         {sessionTypeLabel}
                     </Badge>
                     <Text size="xs" c="dimmed">
-                        #{session.id}
+                        №{session.id}
                     </Text>
                 </Group>
 

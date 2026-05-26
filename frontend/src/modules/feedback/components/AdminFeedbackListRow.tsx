@@ -31,7 +31,7 @@ export default function AdminFeedbackListRow({
                 )}
                 {ticket.sessionId != null && ticket.sessionId > 0 && (
                     <Text size="sm" c="dimmed">
-                        Сессия #{ticket.sessionId}
+                        Сессия №{ticket.sessionId}
                         {ticket.sessionProjectName ? ` · ${ticket.sessionProjectName}` : ""}
                     </Text>
                 )}

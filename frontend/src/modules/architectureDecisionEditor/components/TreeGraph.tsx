@@ -45,8 +45,8 @@ const buildGraph = (hierarchy: NodeHierarchy[], isMobile: boolean) => {
                 ? h.node.architectureStyle ?? 
                     ((h.node.patterns != null && h.node.patterns?.length > 0) ? 
                         h.node?.patterns?.join("\n") : h.node.description) ?? 
-                    `#${id}`
-                : h.node.questionText ?? `Вопрос #${id}`;
+                    `№${id}`
+                : h.node.questionText ?? `Вопрос №${id}`;
 
         dagreGraph.setNode(String(id), { 
             label,

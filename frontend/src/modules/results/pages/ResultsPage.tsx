@@ -326,7 +326,7 @@ export default function ResultsPage() {
                                                             {getSessionTypeLabel(session)}
                                                     </Badge>
                                                     <Text size="xs" c="dimmed">
-                                                        #{session.id}
+                                                        №{session.id}
                                                     </Text>
                                                 </Group>
                                             </Group>

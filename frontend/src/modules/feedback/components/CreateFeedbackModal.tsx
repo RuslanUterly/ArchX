@@ -30,7 +30,7 @@ export default function CreateFeedbackModal() {
         () =>
             sessions.map((s) => ({
                 value: String(s.id),
-                label: `${s.projectName} · #${s.id} · ${formatDate(s.completedAt)}`,
+                label: `${s.projectName} · №${s.id} · ${formatDate(s.completedAt)}`,
             })),
         [sessions],
     );
