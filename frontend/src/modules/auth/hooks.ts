@@ -1,7 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
-import { login as apiLogin, register as apiRegister } from './api';
+import {
+    forgotPassword as apiForgotPassword,
+    login as apiLogin,
+    register as apiRegister,
+    resetPassword as apiResetPassword,
+} from './api';
 import { useAuthStore } from './store';
-import type {Credentials, LoginResponse, RegisterData, RegisterResponse} from "./types.ts";
+import type {
+    Credentials,
+    ForgotPasswordData,
+    LoginResponse,
+    RegisterData,
+    RegisterResponse,
+    ResetPasswordData,
+} from "./types.ts";
 
 export const useLogin = () => {
     const setToken = useAuthStore((state) => state.setToken);
@@ -22,6 +34,20 @@ export const useRegister = () => {
         onSuccess: (data) => {
             console.log('Registration successful:', data.message);
         },
+        onError: (err) => console.error(err),
+    });
+};
+
+export const useForgotPassword = () => {
+    return useMutation<void, Error, ForgotPasswordData>({
+        mutationFn: (data) => apiForgotPassword(data),
+        onError: (err) => console.error(err),
+    });
+};
+
+export const useResetPassword = () => {
+    return useMutation<void, Error, ResetPasswordData>({
+        mutationFn: (data) => apiResetPassword(data),
         onError: (err) => console.error(err),
     });
 };

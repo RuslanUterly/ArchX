@@ -4,6 +4,7 @@ using ArchX.Server.Features.ArchitectureDecision;
 using ArchX.Server.Features.ArchitectureDecisionEditor;
 using ArchX.Server.Features.Auth;
 using ArchX.Server.Features.Auth.Jwt;
+using ArchX.Server.Features.Email;
 using ArchX.Server.Features.Feedback;
 using ArchX.Server.Features.Profile;
 using ArchX.Server.Features.Statistics;
@@ -122,8 +123,11 @@ public static class Extensions
 
     public static TBuilder AddServices<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(nameof(SmtpOptions)));
+        builder.Services.Configure<PasswordResetOptions>(builder.Configuration.GetSection(nameof(PasswordResetOptions)));
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+        builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
         builder.Services.AddScoped<DecisionTreeService>();
         builder.Services.AddScoped<DecisionTreeEditorService>();
         builder.Services.AddScoped<FeedbackService>();

@@ -27,6 +27,14 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-archx};Username=${POSTGRES_USER:-archx};Password=${POSTGRES_PASSWORD:-archx_password}
       JwtOptions__SecretKey: ${JWT_SECRET:-CHANGE_THIS_SECRET_32_PLUS_CHARS_LONG}
+      PasswordResetOptions__ResetPasswordUrl: ${RESET_PASSWORD_URL:-https://archx.online/auth/reset-password}
+      SmtpOptions__Host: ${SMTP_HOST:-}
+      SmtpOptions__Port: ${SMTP_PORT:-587}
+      SmtpOptions__EnableSsl: ${SMTP_ENABLE_SSL:-true}
+      SmtpOptions__UserName: ${SMTP_USER:-}
+      SmtpOptions__Password: ${SMTP_PASSWORD:-}
+      SmtpOptions__FromEmail: ${SMTP_FROM_EMAIL:-}
+      SmtpOptions__FromName: ${SMTP_FROM_NAME:-ArchX}
     depends_on:
       postgres:
         condition: service_healthy

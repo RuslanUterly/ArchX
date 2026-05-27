@@ -31,6 +31,16 @@ export interface RegisterData extends Credentials {
     grade: Grade;
 }
 
+export interface ForgotPasswordData {
+    email: string;
+}
+
+export interface ResetPasswordData {
+    email: string;
+    token: string;
+    newPassword: string;
+}
+
 export interface LoginResponse {
     accessToken: string;
 }

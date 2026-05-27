@@ -24,6 +24,22 @@ public class AuthController(AuthService authService) : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequestDto request)
+    {
+        await authService.SendPasswordResetEmailAsync(request);
+
+        return Ok();
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequestDto request)
+    {
+        await authService.ResetPasswordAsync(request);
+
+        return Ok();
+    }
+
     [HttpGet("roles")]
     [Authorize]
     public async Task<IActionResult> GetUserRolesAsync()

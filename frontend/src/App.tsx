@@ -5,6 +5,8 @@ import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./shared/components/route/ProtectedRoute.tsx";
 import LoginPage from "./modules/auth/pages/LoginPage.tsx";
 import RegisterPage from "./modules/auth/pages/RegisterPage.tsx";
+import ForgotPasswordPage from "./modules/auth/pages/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./modules/auth/pages/ResetPasswordPage.tsx";
 import { NotFoundPage } from "./shared/pages/NotFoundPage.tsx";
 import LayoutCenter from "./shared/components/layout/LayoutCenter.tsx";
 import HomePage from "./modules/home/pages/HomePage.tsx";
@@ -95,6 +97,16 @@ function App() {
                 <Route path="/auth/register" element={
                     <LayoutCenter>
                         <RegisterPage />
+                    </LayoutCenter>
+                } />
+                <Route path="/auth/forgot-password" element={
+                    <LayoutCenter>
+                        <ForgotPasswordPage />
+                    </LayoutCenter>
+                } />
+                <Route path="/auth/reset-password" element={
+                    <LayoutCenter>
+                        <ResetPasswordPage />
                     </LayoutCenter>
                 } />
 

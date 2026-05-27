@@ -48,6 +48,11 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                     leftSection={<IconLock size={16}/>}
                     onChange={(e) => setPassword(e.currentTarget.value)}
                 />
+                <Group justify="center" align="center">
+                    <Anchor c={mainColor} component="button" type="button" onClick={() => navigate('/auth/forgot-password')}>
+                        Забыли пароль?
+                    </Anchor>
+                </Group>
                 <Group justify="space-between" align="baseline" wrap="wrap">
                     <Text mt="md">
                         Нет аккаунта?{' '}
